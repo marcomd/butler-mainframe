@@ -1,0 +1,20 @@
+defaults: &defaults
+  cics: 7
+  user: "IBM0001"
+  password: "password"
+  life_user: "LIFE1"
+  life_password: "password"
+  modules_included:
+    activerecord: yes
+    generic_functions: yes
+    custom_functions: yes
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
+  cics: 4

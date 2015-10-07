@@ -1,0 +1,9 @@
+.idea
+*.gem
+bin/*.gem
+.git
+*.cmd
+*.lnk
+mybundle*
+.bundle
+Gemfile.lock

@@ -1,0 +1,10 @@
+Description:
+    Copy configurations file into local rails app
+
+Example:
+    rails generate butler:install
+
+Check all your generators:
+    rails g --help
+
+
