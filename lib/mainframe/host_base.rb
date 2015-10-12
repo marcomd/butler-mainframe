@@ -50,7 +50,6 @@ module ButlerMainframe
             puts "Session not closed because it was already existing" if @debug
           end
       end
-      @action = nil
     end
 
     # Sleep time between operations

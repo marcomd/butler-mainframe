@@ -31,6 +31,7 @@ module ButlerMainframe
     def sub_close_session
       @action.Sessions(@session).Close
       @action.Quit
+      @action = nil
     end
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...

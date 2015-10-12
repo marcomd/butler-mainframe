@@ -1,16 +1,14 @@
 # Butler-mainframe
 
 [![Version     ](http://img.shields.io/gem/v/butler-mainframe.svg)                     ](https://rubygems.org/gems/butler-mainframe)
-[![Travis CI   ](http://img.shields.io/travis/marcomd/butler-mainframe/master.svg)     ](https://travis-ci.org/marcomd/butler-mainframe)
 [![Quality     ](http://img.shields.io/codeclimate/github/marcomd/butler-mainframe.svg)](https://codeclimate.com/github/marcomd/butler-mainframe)
 
 This gem provides a virtual butler which can perform your custom tasks on a 3270 emulator.
-You just have to choose your emulator and configure your task.
+You just have to choose your emulator and configure your tasks.
 
 ## Compatibility
 
-At the moment it works only on windows plaftorms.
-Check on travis badge
+Developed on a windows plaftorm.
 
 
 ## Install
@@ -47,7 +45,7 @@ now session is ready to use:
 
     host.scan_page
 
-should return you what you see on your terminal
+should return what you see on your terminal
 
 ## Commands
 
@@ -105,6 +103,7 @@ My advice is to use navigate method for generic navigation and use a specific mo
 
 ## With Rails
 
+__In development...__
 This module can be use on rails project.
 Add in your gemfile
 
@@ -120,13 +119,27 @@ run generator to copy configuration files
 
 ```ruby
 Class Invoice
-    ... your code
+    # ... your code
 
     def host3270
-        host = ButlerMainframe::Host.new
-        host.navigate :my_starting_position
-        host.write 'Hello world'
-        host.close_session
+        @host = ButlerMainframe::Host.new
+        @host.navigate :my_starting_position
+
+        # Always check whether we are positioned on the screen that we expect
+        raise 'Screen not expected' unless self.my_function_start_screen?
+
+        # We develop the function.
+        # In this simple case we put a number in a map cics and press Enter
+        @host.write self.invoice_number
+        @host.do_enter
+
+        # to read the confirmation message
+        raise 'Message not expected' unless /SUCCESSFUL/ === self.catch_message
+
+        @host.close_session
+    rescue
+        host.screenshot :error
+        # Manage the invoice status etc.
     end
 end
 ```
@@ -136,6 +149,19 @@ rails generate screen hook_id:integer 'hook_type:string{30}' 'screen_type:intege
 
 In the model to be related to screen we insert:
 has_many :screens, :as => :hook, :dependent => :destroy
+
+
+## Test with rake
+
+Simple embedded tests
+
+    bundle install
+    bundle exec rake butler:mainframe:test
+
+For more informations:
+
+    bundle exec rake -T
+
 
 ## License
 
