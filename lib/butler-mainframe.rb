@@ -30,26 +30,30 @@ require "mainframe/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
 
 ButlerMainframe::Settings.load!(File.join(ButlerMainframe.root,'lib','config','settings.yml'), :env => env)
 
-if ButlerMainframe::Settings.modules_included[:activerecord]
-  require 'mainframe/customization/active_record'
-  # puts "Extending Host class with #{Host3270::ActiveRecord}" if debug
-  ButlerMainframe::Host.include Host3270::ActiveRecord
+require 'mainframe/customization/active_record'
+# puts "Extending Host class with #{Host3270::ActiveRecord}" if debug
+# Use monkey patch for 1.8 compatibility
+class ButlerMainframe::Host
+  include Host3270::ActiveRecord
 end
 
-if ButlerMainframe::Settings.modules_included[:generic_functions]
-  require 'mainframe/customization/generic_functions'
-  # puts "Extending Host class with #{Host3270::GenericFunctions}" if debug
-  ButlerMainframe::Host.include Host3270::GenericFunctions
+require 'mainframe/customization/generic_functions'
+# puts "Extending Host class with #{Host3270::GenericFunctions}" if debug
+class ButlerMainframe::Host
+  include Host3270::GenericFunctions
 end
 
-if ButlerMainframe::Settings.modules_included[:custom_functions] && defined?(Host3270::CustomFunctions)
+if defined?(Host3270::CustomFunctions)
   # puts "Extending Host class with #{Host3270::CustomFunctions}" if debug
-  ButlerMainframe::Host.include Host3270::CustomFunctions
+  class ButlerMainframe::Host
+    include Host3270::CustomFunctions
+  end
 end
 
 =begin
 # To test in irb
 require 'butler-mainframe'
-host=ButlerMainframe::Host.new
+host=ButlerMainframe::Host.new(debug: :full)
 host.scan_page
+host.navigate :next
 =end

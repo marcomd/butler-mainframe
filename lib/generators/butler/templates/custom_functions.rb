@@ -156,4 +156,6 @@ module Host3270
   end
 end
 
-ButlerMainframe::Host.include Host3270::CustomFunctions
+class ButlerMainframe::Host
+  include Host3270::CustomFunctions
+end
