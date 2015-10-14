@@ -18,7 +18,59 @@ Instal the gem from rubygems
     gem install butler-mainframe
 
 Then you have to install your favorite emulator.
-At the moment is supported only [Passport web to host by rocket software](http://www.rocketsoftware.com/products/rocket-passport-web-to-host)
+
+
+## Emulator
+
+At the moment are managed two emulators both are commercial which must be purchased and installed on the machine.
+Both have x days free trial.
+
+* [Passport web to host by Rocket Software](http://www.rocketsoftware.com/resource/rocket-passport-web-host-overview)
+* [Personal communication by IBM](http://www-03.ibm.com/software/products/en/pcomm)
+
+
+## Configuration
+
+In the config folder there are two files:
+
+   * config.rb
+   * settings.yml
+
+### Emulator configuration
+
+config.rb can be used for the configuration of the gem and the emulator
+
+```ruby
+# Example to configura Personal communication
+
+ButlerMainframe.configure do |config|
+  config.host_gateway   = :pcomm
+  config.browser_path   = "'C:/Program Files (x86)/IBM/Personal Communications/pcsws.exe'"
+  config.session_path   = "'C:/Users/Marco/AppData/Roaming/IBM/Personal Communications/host3270.ws'"
+  config.session_tag    = 'A'
+  config.timeout        = 3000
+end
+```
+
+```ruby
+# Example to configura Passport web to host
+
+ButlerMainframe.configure do |config|
+  config.host_gateway   = :passport
+  config.browser_path   = 'c:/Program Files (x86)/Internet Explorer/iexplore.exe'
+  config.session_path   = 'https://localhost/zephyr/Ecomes.zwh?sessionprofile=3270dsp/Sessions/host3270'
+  config.session_tag    = 1
+  config.timeout        = 3000
+end
+```
+
+### Use configuration
+
+settings.yml for the variables necessary to use the emulator like user, password, cics selection and everything else. It has one section for every environment in rails style.
+
+    foo: add every variable you need and use it with => ButlerMainframe::Settings.foo
+        bar: sub variable are accessible with hash => ButlerMainframe::Settings.foo[:bar]
+
 
 ## How to use
 
@@ -26,11 +78,7 @@ In irb:
 
     C:\Ruby>irb
     irb(main):001:0> require 'butler-mainframe'
-
-    Use ButlerMainframe::Host.new
-    Please read the documentation on github for more information
     => true
-    irb(main):002:0>
 
 You can start the emulator 3270 manually, the butler will lean on that and will let it open at the end.
 In this example, I dont start the session and immediately create a new instance:
@@ -113,9 +161,9 @@ then
 
     bundle install
 
-run generator to copy configuration files
+run generator to copy configuration files suitable for the emulator you need
 
-    rails g butler:install
+    rails g butler:install --emulator=passport
 
 ```ruby
 Class Invoice
@@ -162,6 +210,124 @@ For more informations:
 
     bundle exec rake -T
 
+
+## More informations about supported emulators
+
+I hope this can help to support my work or yours if you need something different
+
+### Passport web to host
+
+Documentation can be found [here](http://www.zephyrcorp.com/legacy-integration/Documentation/passport_host_integration_objects.htm) Rocket use old Zephyr documentation, unfortunately it's obsolete :disappointed:
+
+```ruby
+require 'win32ole'
+passport = WIN32OLE.new("PASSPORT.System")
+```
+
+passport.ole_methods:
+
+    # QueryInterface      # AddRef          # Release         # GetTypeInfoCount
+    # GetTypeInfo         # GetIDsOfNames   # Invoke          # ActiveSession
+    # Application         # DefaultFilePath # DefaultFilePath # FullName
+    # Name                # Parent          # Path            # Sessions
+    # TimeoutValue        # Version         # Quit            # ViewStatus
+    # GetTypeInfoCount    # GetTypeInfo     # GetIDsOfNames   # Invoke
+    # TimeoutValue
+
+passport.Sessions(1).ole_methods
+
+    # QueryInterface      # AddRef              # Release             # GetTypeInfoCount    # Toolbars
+    # GetTypeInfo         # GetIDsOfNames       # Invoke              # Application         # Visible
+    # ColorScheme         # ColorScheme         # Connected           # Connected           # Activate
+    # EditScheme          # EditScheme          # FileTransferHostOS  # FileTransferHostOS  # SaveAs
+    # FileTransferScheme  # FileTransferScheme  # FullName            # Height
+    # Height              # HotSpotScheme       # HotSpotScheme       # KeyboardLocked
+    # KeyboardLocked      # KeyMap              # KeyMap              # Left
+    # Name                # PageRecognitionTime # PageRecognitionTime # Parent
+    # Path                # QuickPads           # Saved               # Screen
+    # Top                 # Top                 # Type                # Visible
+    # Width               # Width               # WindowState         # WindowState
+    # Close               # NavigateTo          # ReceiveFile         # Save
+    # SendFile            # FileTransferOptions # GetTypeInfoCount    # GetTypeInfo
+    # GetIDsOfNames       # Invoke
+
+passport.Sessions(1).Screen.ole_methods:
+
+    # QueryInterface     # AddRef           # Release          # GetTypeInfoCount # GetTypeInfo
+    # GetIDsOfNames      # Invoke           # Application      # Col              # Col
+    # Cols               # Name             # OIA              # Parent           # Row
+    # Row                # Rows             # Selection        # Updated          # Area
+    # Copy               # Cut              # Delete           # GetString        # MoveRelative
+    # MoveTo             # Paste            # PutString        # Search           # Select
+    # SelectAll          # SendInput        # SendKeys         # WaitForCursor    # WaitForCursorMove
+    # WaitForKeys        # WaitForStream    # WaitForString    # WaitHostQuiet    # CheckTimeInterval
+    # CheckTimeInterval  # WaitAfterAIDKey  # WaitAfterAIDKey  # GetTypeInfoCount # GetTypeInfo
+    # GetIDsOfNames      # Invoke
+
+### Personal communication
+
+Documentation can be found [here](http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/host_access08.htm) Ibm did a good work!
+
+```ruby
+require 'win32ole'
+session  = WIN32OLE.new("PComm.autECLSession")
+session.SetConnectionByName 'A'
+space   = session.autECLPS
+screen  = session.autECLOIA
+```
+
+session.ole_methods:
+
+    # QueryInterface        # AddRef                  # Release
+    # GetTypeInfoCount      # GetTypeInfo             # autECLWinMetrics
+    # GetIDsOfNames         # Invoke                  # Handle
+    # autECLXfer            # autECLPS                # Started
+    # autECLOIA             # Name                    # Ready
+    # ConnType              # CodePage
+    # CommStarted           # APIEnabled
+    # StartCommunication    # StopCommunication
+    # SetConnectionByName   # SetConnectionByHandle
+    # RegisterSessionEvent  # UnregisterSessionEvent
+    # RegisterCommEvent     # UnregisterCommEvent
+    # autECLPageSettings    # autECLPrinterSettings
+    # GetTypeInfoCount      # GetTypeInfo
+    # GetIDsOfNames         # Invoke
+
+session.autECLPS.ole_methods (presentation space):
+
+    # QueryInterface      # AddRef                # Release             # GetTypeInfoCount 
+    # GetTypeInfo         # GetIDsOfNames         # Invoke              # autECLFieldList 
+    # NumRows             # NumCols               # CursorPosRow        # CursorPosCol 
+    # SetConnectionByName # SetConnectionByHandle # SetCursorPos        # GetTextRect 
+    # SendKeys            # SearchText            # GetText             # WaitWhileCursor 
+    # SetText             # Wait                  # StartMacro          # WaitWhileStringInRect
+    # WaitForCursor       # WaitWhileString       # WaitForString       # WaitForScreen  
+    # WaitForStringInRect # WaitWhileAttrib       # WaitForAttrib       # UnregisterPSEvent 
+    # WaitWhileScreen     # CancelWaits           # RegisterPSEvent     # Handle 
+    # RegisterKeyEvent    # UnregisterKeyEvent    # RegisterCommEvent   # CommStarted 
+    # UnregisterCommEvent # SetTextRect           # Name                # StopCommunication
+    # ConnType            # CodePage              # Started             # Invoke
+    # APIEnabled          # Ready                 # StartCommunication   
+    # GetTypeInfoCount    # GetTypeInfo           # GetIDsOfNames   
+
+session.autECLOIA.ole_methods (screen):
+
+    # QueryInterface       # AddRef                 # Release             # GetTypeInfoCount  # UpperShift 
+    # GetTypeInfo          # GetIDsOfNames          # Invoke              # Alphanumeric      # CommErrorReminder
+    # APL                  # Katakana               # Hiragana            # DBCS              # ConnType   
+    # NumLock              # Numeric                # CapsLock            # InsertMode        # Ready    
+    # MessageWaiting       # InputInhibited         # Name                # Handle            # Invoke  
+    # CodePage             # Started                # CommStarted         # APIEnabled          
+    # SetConnectionByName  # SetConnectionByHandle  # StartCommunication  # StopCommunication   
+    # WaitForInputReady    # WaitForSystemAvailable # WaitForAppAvailable # WaitForTransition 
+    # CancelWaits          # RegisterCommEvent      # UnregisterCommEvent # RegisterOIAEvent 
+    # UnregisterOIAEvent   # GetTypeInfoCount       # GetTypeInfo         # GetIDsOfNames 
+
+
+## ToDo
+
+* Improve unit test
+* Improve static navigation
 
 ## License
 

@@ -11,12 +11,14 @@ module ButlerMainframe
 
     def initialize options={}
       options = {
-          :session          => 1,
+          :session_tag      => ButlerMainframe.configuration.session_tag,
           :wait             => 0.01,  #wait screen in seconds
           :wait_debug       => 2,     #wait time for debug purpose
           :debug            => true,
           :browser_path     => ButlerMainframe.configuration.browser_path,
+          :session_url      => ButlerMainframe.configuration.session_url,
           :session_path     => ButlerMainframe.configuration.session_path,
+          :timeout          => ButlerMainframe.configuration.timeout,
           :close_session    => :evaluate
                               #:evaluate    if the session is found will not be closed
                               #:never       never close the session
@@ -26,8 +28,9 @@ module ButlerMainframe
       @debug            = options[:debug]
       @wait             = options[:wait]
       @wait_debug       = options[:wait_debug]
-      @session          = options[:session]
+      @session_tag      = options[:session_tag]
       @close_session    = options[:close_session]
+      @timeout          = options[:timeout]
       @pid = nil
 
       create_object options
@@ -59,7 +62,6 @@ module ButlerMainframe
 
     # Execute keyboard command like PF1 or PA2 or ENTER ...
     def exec_command cmd
-      cmd = "<#{cmd}>"
       puts "Command: #{cmd}" if @debug
       sub_exec_command cmd
       wait_session
@@ -96,17 +98,18 @@ module ButlerMainframe
           :clean_first_chars          => nil
       }.merge(options)
 
-      y=options[:y]
-      x=options[:x]
+      y           = options[:y]
+      x           = options[:x]
+      hooked_rows = 2
       raise "Missing coordinates! y(row)=#{y} x(column)=#{x} " unless x && y
       raise "Sorry, cannot write null values" unless text
 
       bol_written = nil
       if options[:hook]
-        (y-2..y+2).each do |y_riga|
-          if /#{options[:hook]}/ === scan_row(y_riga, 1, MAX_TERMINAL_COLUMNS)
-            puts "Change y from #{y} to #{y_riga} cause hook to:#{options[:hook]}" if y_riga != y && @debug
-            bol_written = write_clean_text_on_map text, y_riga, x, options
+        (y-hooked_rows..y+hooked_rows).each do |row_number|
+          if /#{options[:hook]}/ === scan_row(row_number, 1, MAX_TERMINAL_COLUMNS)
+            puts "Change y from #{y} to #{row_number} cause hook to:#{options[:hook]}" if row_number != y && @debug
+            bol_written = write_clean_text_on_map text, row_number, x, options
             break
           end
         end
@@ -116,47 +119,76 @@ module ButlerMainframe
       bol_written
     end
 
-    # It returns the coordinates of the cursor
+    # Return the coordinates of the cursor
     def get_cursor_axes
       sub_get_cursor_axes
+    end
+
+    # Move the cursor at given coordinates
+    def set_cursor_axes y, x, options={}
+      sub_set_cursor_axes y, x, options
     end
 
     private
 
     # It creates the object calling subclass method
+    # It depends on the emulator chosen but typically the object is present after starting the terminal session
     # These are the options with default values:
     #     :session          => 1,
     #     :debug            => true,
     #     :browser_path     => ButlerMainframe::Settings.browser_path,
     #     :session_path     => ButlerMainframe::Settings.session_path,
     def create_object options={}
-      sub_create_object
+      connection_attempts       = 8
+      seconds_between_attempts  = 2
+
+      sub_create_object options
+
+      # if the terminal is not found then we start it
       unless sub_object_created?
-        puts "Session not found, starting new..." if @debug
+        puts "Session #{@session_tag} not found, starting new..." if @debug
+
+        executable, args =  if options[:browser_path] && !options[:browser_path].empty?
+                              [options[:browser_path], options[:session_url]]
+                            elsif options[:session_path] && !options[:session_path].empty?
+                              [options[:session_path], nil]
+                            else
+                              [nil, nil]
+                            end
+        raise "Specify an executable in the configuration file!" unless executable
 
         if /^1.8/ === RUBY_VERSION
-          Thread.new {system "#{options[:browser_path]} #{options[:session_path]}"}
+          Thread.new {system "#{executable} #{args}"}
           @pid = $?.pid if $?
         else
           #It works only on ruby 1.9+
-          @pid = Process.spawn "#{options[:browser_path]}", "#{options[:session_path]}"
+          @pid = Process.spawn *[executable, args].compact
         end
 
         puts "Starting session with process id #{@pid}, wait please..." if @debug
         sleep 2
-        5.times do
-          puts "Wait please..." if @debug
+        connection_attempts.times do
+          puts "Detecting session #{@session_tag}, wait please..." if @debug
           sub_create_object
-          sub_object_created? ? break : sleep(10)
+          sub_object_created? ? break : sleep(seconds_between_attempts)
         end
         @session_started_by_me = true
       end
 
-      if sub_object_created?
+      raise "Session #{@session_tag} not started. Check the session #{options[:browser_path]} #{options[:session_path]}" unless sub_object_created?
+
+      unless sub_object_ready?
+        connection_attempts.times do
+          puts "Waiting for the session to be ready..." if @debug
+          sub_object_ready? ? break : sleep(seconds_between_attempts)
+        end
+      end
+
+      if sub_object_ready?
         puts "** Connection established with #{sub_name} **"
         puts "Session full name: #{sub_fullname}" if @debug == :full
       else
-        raise "Connection refused. Check the session #{options[:session]} and it was on the initial screen."
+        raise "Connection refused. Check session #{@session_tag} with process id #{@pid}"
       end
 
     rescue
@@ -194,7 +226,7 @@ module ButlerMainframe
 
     # Write a text on the screen
     # It also contains the logic to control the successful writing
-    def write_text_on_map(text, y, x, options={})
+    def write_text_on_map text, y, x, options={}
       options = {
           :check                      => true,
           :raise_error_on_check       => true,
@@ -203,7 +235,7 @@ module ButlerMainframe
       raise "Impossible to write beyond row #{MAX_TERMINAL_ROWS}" if y > MAX_TERMINAL_ROWS
       raise "Impossible to write beyond column #{MAX_TERMINAL_COLUMNS}" if x > MAX_TERMINAL_COLUMNS
       raise "Impossible to write a null value" unless text
-      sub_write_text text, y, x
+      sub_write_text text, y, x, :check_protect => options[:check]
       # It returns the function's result
       if options[:check]
         # It expects the string is present on the session at the specified coordinates

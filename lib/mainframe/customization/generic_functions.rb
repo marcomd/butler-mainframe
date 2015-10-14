@@ -10,6 +10,8 @@ module Host3270
 
     def do_quit; exec_command "CLEAR" end
 
+    def do_erase; exec_command "ERASE EOF" end
+
     def destination_list
       [
       :company_menu,
