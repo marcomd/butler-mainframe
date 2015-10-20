@@ -48,7 +48,7 @@ module ButlerMainframe
     #Execute keyboard command like PF1 or PA2 or ENTER ...
     def sub_exec_command cmd, options={}
       # Cast cmd to_s cause it could be passed as label
-      @screen.SendKeys "<#{cmd}>"
+      @screen.SendKeys "<#{cmd.gsub /\s/, ''}>"
       @screen.WaitHostQuiet
     end
 

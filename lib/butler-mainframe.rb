@@ -25,7 +25,9 @@ env = Rails.env if defined?(Rails)
 env ||= $ARGV[0] if $ARGV
 env ||= "development"
 debug = env == "development" ? true : false
-require "mainframe/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
+
+# require the emulator sub class specified in the config.rb
+require "mainframe/emulators/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
 
 
 ButlerMainframe::Settings.load!(File.join(ButlerMainframe.root,'lib','config','settings.yml'), :env => env)

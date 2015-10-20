@@ -1,3 +1,10 @@
+0.2.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.1.0...v0.2.0) October 20th, 2015
+------------------------------
+* Added support for the free and open source x3270 terminal emulator, use :x3270 as host gateway in butler configuration
+* Added x3270 sections to documentation
+* Passport sub class now remove spaces from command input
+* Added :erase_field_first param to write method in the host base class in addition to :clean_first_chars to clear a given number of chars
+
 0.1.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.0.6...v0.1.0) October 14th, 2015
 ------------------------------
 * Added IBM personal communication support (tested on 6.0.16), use :pcomm as host gateway in butler configuration

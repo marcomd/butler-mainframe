@@ -31,7 +31,7 @@ module ButlerMainframe
       @session_tag      = options[:session_tag]
       @close_session    = options[:close_session]
       @timeout          = options[:timeout]
-      @pid = nil
+      @pid              = nil
 
       create_object options
     end
@@ -45,9 +45,9 @@ module ButlerMainframe
           puts "Session closed" if @debug
           wait_session 0.1
         when :evaluate
-          if @session_started_by_me
+          if @pid
             sub_close_session
-            puts "Session closed cause started by this process" if @debug
+            puts "Session closed because started by this process with id #{@pid}" if @debug
             wait_session 0.1
           else
             puts "Session not closed because it was already existing" if @debug
@@ -95,7 +95,7 @@ module ButlerMainframe
           :check                      => true,
           :raise_error_on_check       => true,
           :sensible_data              => nil,
-          :clean_first_chars          => nil
+          :clean_first_chars          => nil # clean x chars before writing a value
       }.merge(options)
 
       y           = options[:y]
@@ -104,18 +104,19 @@ module ButlerMainframe
       raise "Missing coordinates! y(row)=#{y} x(column)=#{x} " unless x && y
       raise "Sorry, cannot write null values" unless text
 
-      bol_written = nil
+      bol_written = false
       if options[:hook]
         (y-hooked_rows..y+hooked_rows).each do |row_number|
           if /#{options[:hook]}/ === scan_row(row_number, 1, MAX_TERMINAL_COLUMNS)
             puts "Change y from #{y} to #{row_number} cause hook to:#{options[:hook]}" if row_number != y && @debug
-            bol_written = write_clean_text_on_map text, row_number, x, options
+            bol_written = write_text_on_map text, row_number, x, options
             break
           end
         end
+      else
+        #If no control is required or was not found the label reference
+        bol_written = write_text_on_map(text, y, x, options) unless bol_written
       end
-      #If no control is required or was not found the label reference
-      bol_written = write_clean_text_on_map(text, y, x, options) unless bol_written
       bol_written
     end
 
@@ -144,8 +145,10 @@ module ButlerMainframe
 
       sub_create_object options
 
-      # if the terminal is not found then we start it
-      unless sub_object_created?
+      if sub_object_created?
+        puts "Using the terminal with process id #{@pid}" if @pid && @debug
+      else
+        # if the terminal is not found then we start it
         puts "Session #{@session_tag} not found, starting new..." if @debug
 
         executable, args =  if options[:browser_path] && !options[:browser_path].empty?
@@ -172,7 +175,6 @@ module ButlerMainframe
           sub_create_object
           sub_object_created? ? break : sleep(seconds_between_attempts)
         end
-        @session_started_by_me = true
       end
 
       raise "Session #{@session_tag} not started. Check the session #{options[:browser_path]} #{options[:session_path]}" unless sub_object_created?
@@ -210,47 +212,49 @@ module ButlerMainframe
       str
     end
 
-    # It has an additional option to clean the line before writing a value
-    def write_clean_text_on_map text, y, x, options={}
-      if options[:clean_first_chars] && options[:clean_first_chars].to_i > 0
-        puts "Clean #{options[:clean_first_chars]} char#{options[:clean_first_chars] == 1 ? '' : 's'} y:#{y} x:#{x}" if @debug
-        bol_cleaned = write_text_on_map(" " * options[:clean_first_chars], y, x, options)
-        unless bol_cleaned
-          puts "EHI! Impossible to clean the area specified" if @debug
-          return false
-        end
-      end
-      puts "Clean: #{options[:sensible_data] ? ('*' * text.size) : text} y:#{y} x:#{x}" if @debug
-      write_text_on_map(text, y, x, options)
-    end
-
     # Write a text on the screen
     # It also contains the logic to control the successful writing
     def write_text_on_map text, y, x, options={}
       options = {
           :check                      => true,
           :raise_error_on_check       => true,
-          :sensible_data              => nil
+          :sensible_data              => nil,
+          :clean_first_chars          => nil,
+          :erase_field_first          => nil
       }.merge(options)
-      raise "Impossible to write beyond row #{MAX_TERMINAL_ROWS}" if y > MAX_TERMINAL_ROWS
+      raise "Impossible to write beyond row #{MAX_TERMINAL_ROWS}"       if y > MAX_TERMINAL_ROWS
       raise "Impossible to write beyond column #{MAX_TERMINAL_COLUMNS}" if x > MAX_TERMINAL_COLUMNS
-      raise "Impossible to write a null value" unless text
+      raise "Impossible to write a null value"                          unless text
+
+      if options[:clean_first_chars] && options[:clean_first_chars].to_i > 0
+        puts "write_text_on_map: Clean #{options[:clean_first_chars]} char#{options[:clean_first_chars] == 1 ? '' : 's'} y:#{y} x:#{x}" if @debug
+        bol_cleaned = write_text_on_map(" " * options[:clean_first_chars], y, x, options)
+        unless bol_cleaned
+          puts "write_text_on_map: EHI! Impossible to clean the area specified" if @debug
+          return false
+        end
+      end
+
+      if options[:erase_field_first]
+        set_cursor_axes y, x
+        do_erase
+      end
+
       sub_write_text text, y, x, :check_protect => options[:check]
-      # It returns the function's result
-      if options[:check]
+      res = true
+      # If check is required it verify text is on the screen at given coordinates
+      # Sensible data option disable the check because it could be on hidden fields
+      if options[:check] && !options[:sensible_data]
         # It expects the string is present on the session at the specified coordinates
-        if sub_wait_for_string text, y, x
-          return true
-        else
+        unless sub_wait_for_string text, y, x
           if options[:raise_error_on_check]
-            raise "Impossible to write #{options[:sensible_data] ? ('*' * text.size) : text} at row #{y} column #{x}"
+            raise "write_text_on_map: Impossible to write #{options[:sensible_data] ? ('*' * text.size) : text} at row #{y} column #{x}"
           else
-            return false
+            res = false
           end
         end
-      else
-        return true
       end
+      res
     end
 
     # If is called a not existing method there is the chance that an optional module may not have been added

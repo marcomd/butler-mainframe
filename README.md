@@ -22,11 +22,11 @@ Then you have to install your favorite emulator.
 
 ## Emulator
 
-At the moment are managed two emulators both are commercial which must be purchased and installed on the machine.
-Both have x days free trial.
+At the moment are managed the below emulators. First two are commercial which must be purchased and installed on the machine (both have x days free trial). The last is free and open source.
 
 * [Passport web to host by Rocket Software](http://www.rocketsoftware.com/resource/rocket-passport-web-host-overview)
 * [Personal communication by IBM](http://www-03.ibm.com/software/products/en/pcomm)
+* [x3270 maintained by Paul Mates](http://x3270.bgp.nu/)
 
 
 ## Configuration
@@ -41,19 +41,7 @@ In the config folder there are two files:
 config.rb can be used for the configuration of the gem and the emulator
 
 ```ruby
-# Example to configura Personal communication
-
-ButlerMainframe.configure do |config|
-  config.host_gateway   = :pcomm
-  config.browser_path   = "'C:/Program Files (x86)/IBM/Personal Communications/pcsws.exe'"
-  config.session_path   = "'C:/Users/Marco/AppData/Roaming/IBM/Personal Communications/host3270.ws'"
-  config.session_tag    = 'A'
-  config.timeout        = 3000
-end
-```
-
-```ruby
-# Example to configura Passport web to host
+# Example to configure Passport web to host
 
 ButlerMainframe.configure do |config|
   config.host_gateway   = :passport
@@ -61,6 +49,26 @@ ButlerMainframe.configure do |config|
   config.session_path   = 'https://localhost/zephyr/Ecomes.zwh?sessionprofile=3270dsp/Sessions/host3270'
   config.session_tag    = 1
   config.timeout        = 3000
+end
+```
+
+```ruby
+# Example to configure Personal communication
+
+ButlerMainframe.configure do |config|
+  config.host_gateway   = :pcomm
+  config.session_path   = '"C:/Program Files (x86)/IBM/Personal Communications/pcsws.exe" "C:/Users/Marco/AppData/Roaming/IBM/Personal Communications/host3270.ws"'
+  config.session_tag    = 'A'
+  config.timeout        = 3000
+end
+```
+
+```ruby
+# Example to configure X3270
+ButlerMainframe.configure do |config|
+  config.host_gateway   = :x3270
+  config.session_path   = '"C:/Program Files (x86)/wc3270/ws3270.exe" 127.0.0.1 -model 2 --'
+  config.timeout        = 5 # In seconds
 end
 ```
 
@@ -87,7 +95,7 @@ In this example, I dont start the session and immediately create a new instance:
     Session not found, starting new...
     Starting session with process id 8560, wait please...
     ** Connection established with host3270 **
-    => #<ButlerMainframe::Host:0x29f3358 @debug=true, @wait=0.01, @wait_debug=2, @session=1, @close_session=:evaluate, @pid=8560, @action=#<WIN32OLE:0x29ebe10>, @session_started_by_me=true>
+    => #<ButlerMainframe::Host:0x29f3358 @debug=true, @wait=0.01, @wait_debug=2, @session=1, @close_session=:evaluate, @pid=8560, @action=#<WIN32OLE:0x29ebe10>>
 
 now session is ready to use:
 
@@ -126,8 +134,7 @@ host.write 'ruby on rails', :y => 6, :x => 15, hook: 'SYSTEM='
 
 The aim is to speed up browsing through static screens.
 The butler detects the current screen and It moves towards the target.
-For example, if the current screen is the login_session and you want to go to the next, to do that Butler log in
-In this case it identifies the first map the session login to the mainframe and it does the login to go to the next screen.
+For example, if the current screen is the login_session and you want to go to the next, Butler log in for you.
 
 ```ruby
 # Go to the login session screen
@@ -151,7 +158,6 @@ My advice is to use navigate method for generic navigation and use a specific mo
 
 ## With Rails
 
-__In development...__
 This module can be use on rails project.
 Add in your gemfile
 
@@ -193,10 +199,14 @@ end
 ```
 
 Create a polimorphic model:
-rails generate screen hook_id:integer 'hook_type:string{30}' 'screen_type:integer{1}' video:text 'message:string{160}' 'cursor_x:integer{1}' 'cursor_y:integer{1}'
+
+    rails generate screen hook_id:integer 'hook_type:string{30}' 'screen_type:integer{1}' video:text 'message:string{160}' 'cursor_x:integer{1}' 'cursor_y:integer{1}'
 
 In the model to be related to screen we insert:
+
+```ruby
 has_many :screens, :as => :hook, :dependent => :destroy
+```
 
 
 ## Test with rake
@@ -323,11 +333,24 @@ session.autECLOIA.ole_methods (screen):
     # CancelWaits          # RegisterCommEvent      # UnregisterCommEvent # RegisterOIAEvent 
     # UnregisterOIAEvent   # GetTypeInfoCount       # GetTypeInfo         # GetIDsOfNames 
 
+### x3270
+
+Documentation can be found [here](http://x3270.bgp.nu/documentation-manpages.html)
+__At the moment it doesn't support check on protect area__
+__x3270 module works only on ruby 1.9+__
+
+```ruby
+require 'open3'
+stdin, stdout, thread = Open3.popen2e('"C:/Program Files (x86)/wc3270/ws3270.exe" YOUR_HOST_IP -model 2 --')
+```
+
+Read the methods list documentation: [windows](http://x3270.bgp.nu/Windows/wc3270-script.html) or [unix](http://x3270.bgp.nu/Unix/x3270-script.html)
 
 ## ToDo
 
 * Improve unit test
 * Improve static navigation
+* Add meta class to choose your host method name and multi language support as well
 
 ## License
 

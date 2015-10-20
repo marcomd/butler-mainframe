@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'butler-mainframe'
-  s.version = '0.1.0'
-  s.date = '2015-10-14'
+  s.version = '0.2.0'
+  s.date = '2015-10-20'
   s.summary = 'A virtual butler to perform tasks on a 3270 emulator'
   s.description = 'This gem provides a virtual butler which can perform your custom tasks on a 3270 emulator. You just have to choose your emulator (atm only one choice) and configure your task.'
   s.homepage = 'https://github.com/marcomd/butler-mainframe'
@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 1.8.7'
   s.platform = Gem::Platform::RUBY
   s.email = ['m.mastrodonato@gmail.com']
-  s.requirements = "Be awake and rested"
+  s.requirements = "A bit of awesomeness"
   s.require_paths = ['lib']
   s.files = Dir.glob('lib/**/*') + Dir.glob('test/**/*') + %w(LICENSE README.md CHANGELOG.md Gemfile rakefile)
   s.license = 'LGPL-3.0'
