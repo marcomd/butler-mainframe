@@ -6,22 +6,17 @@ namespace :butler do
     desc "Test butler mainframe gem"
     task(:test) do  |task_name, args|
 
-      host = nil
       begin
         require 'butler-mainframe'
-        wait_between_iterations = 3
 
         # SLOW
         simple_iteration  :wait => 0.6
-        sleep(wait_between_iterations)
 
         # MEDIUM
         simple_iteration  :wait => 0.08
-        sleep(wait_between_iterations)
 
         # FAST (default 0.01 atm)
         simple_iteration
-        sleep(wait_between_iterations)
 
         puts "*** RAKE TESTS COMPLETE SUCCESSFULLY ***"
       rescue

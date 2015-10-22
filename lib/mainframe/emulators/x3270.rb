@@ -14,6 +14,7 @@ module ButlerMainframe
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
       @action = {}
       @action[:in], @action[:out], @action[:thr] = Open3.popen2e(str_obj)
+      sleep WAIT_AFTER_START_SESSION
       @pid    = @action[:thr].pid
     end
 

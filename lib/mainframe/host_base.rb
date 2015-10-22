@@ -6,8 +6,9 @@ module ButlerMainframe
     attr_reader :action, :wait
     attr_accessor :debug
 
-    MAX_TERMINAL_COLUMNS = 80
-    MAX_TERMINAL_ROWS    = 24
+    MAX_TERMINAL_COLUMNS      = 80
+    MAX_TERMINAL_ROWS         = 24
+    WAIT_AFTER_START_SESSION  = 3 #SECONDS
 
     def initialize options={}
       options = {
@@ -169,8 +170,6 @@ module ButlerMainframe
         start_terminal_session options
 
         # New connection attempts after starting session...
-        puts "Starting session with process id #{@pid}, wait please..." if @debug
-        sleep 2
         connection_attempts.times do
           puts "Detecting session #{@session_tag}, wait please..." if @debug
           sub_create_object
@@ -224,6 +223,9 @@ module ButlerMainframe
         #It works only on ruby 1.9+
         @pid = Process.spawn *[executable, args].compact
       end
+
+      sleep WAIT_AFTER_START_SESSION
+      puts "Started session with process id #{@pid}, wait please..." if @debug
     end
 
     #It reads one line on the screen

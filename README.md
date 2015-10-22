@@ -242,6 +242,18 @@ Each iteration uses different latency times, we start from high and therefore si
 It is not so easy make more complex sequence to share because mainframe screens are strongly diversified but everyone can add their own and iterate as many times as deemed appropriate.
 
 
+## Production environment
+
+Which emulator choose? Well, it depends on the platform on which the application will run.
+
+I'll try to comment supported emulators based on my experience of about 11 years in the production environment:
+
+1. **Passport Web to Host**: on Windows 2008 R2 is stable but it can run only if scheduler user is logged in, for a production environment is a big constraint. The newer version on windows 2012 (old 2008 version cannot be installed on windows 2012 server) is even worse because there are problems of stability causing crash after long use. We are divesting.
+
+2. **IBM Personal communication**: it happened that the session got stuck even if it was extremely rare event and i could not never attribute the blame to it. I must also mention the fact that two different processes creates only troubles. High price but at the moment seems to be the best choice.
+
+3. **x3270**: support is improving, it's free and open source. In future may become the best choice.
+
 ## More informations about supported emulators
 
 I hope this can help to support my work or yours if you need something different
@@ -384,8 +396,7 @@ Custom files are yours and not under license.
 
 ## Found a bug?
 
-If you are having a problem please submit an issue at
-* m.mastrodonato@gmail.com
+If you are having a problem please open an issue. You can also send an email to m.mastrodonato@gmail.com
 
 
 

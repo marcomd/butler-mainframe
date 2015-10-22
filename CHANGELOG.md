@@ -1,3 +1,8 @@
+0.4.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.3.0...v0.4.0) October 22th, 2015
+------------------------------
+* Improved x3270 sub class stability. Added a delay after session starting
+* Several little improvements
+
 0.3.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.2.0...v0.3.0) October 22th, 2015
 ------------------------------
 * Improved the host base class code to make it simpler
