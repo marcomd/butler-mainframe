@@ -14,7 +14,7 @@ module ButlerMainframe
           :session_tag      => ButlerMainframe.configuration.session_tag,
           :wait             => 0.01,  #wait screen in seconds
           :wait_debug       => 2,     #wait time for debug purpose
-          :debug            => true,
+          :debug            => false,
           :browser_path     => ButlerMainframe.configuration.browser_path,
           :session_url      => ButlerMainframe.configuration.session_url,
           :session_path     => ButlerMainframe.configuration.session_path,
@@ -31,6 +31,7 @@ module ButlerMainframe
       @session_tag      = options[:session_tag]
       @close_session    = options[:close_session]
       @timeout          = options[:timeout]
+      @action           = {}
       @pid              = nil
 
       create_object options
@@ -87,19 +88,32 @@ module ButlerMainframe
 
     # Write text on screen at the coordinates
     # Based on the parameters provided it writes a line or an area
+    # Options:
+    #     :hook                       => nil,
+    #     :y                          => nil, #row
+    #     :x                          => nil, #column
+    #     :check                      => true,
+    #     :raise_error_on_check       => true,
+    #     :sensible_data              => nil,
+    #     :clean_first_chars          => nil, # clean x chars before writing a value
+    #     :erase_field_first          => nil  # erase first until end of field
     def write text, options={}
       options = {
           :hook                       => nil,
-          :y                          => nil, #riga
-          :x                          => nil, #colonna
+          :y                          => nil, #row
+          :x                          => nil, #column
           :check                      => true,
           :raise_error_on_check       => true,
           :sensible_data              => nil,
-          :clean_first_chars          => nil # clean x chars before writing a value
+          :clean_first_chars          => nil, # clean x chars before writing a value
+          :erase_field_first          => nil  # erase first until end of field
       }.merge(options)
 
       y           = options[:y]
       x           = options[:x]
+      y         ||= get_cursor_axes[0]
+      x         ||= get_cursor_axes[1]
+
       hooked_rows = 2
       raise "Missing coordinates! y(row)=#{y} x(column)=#{x} " unless x && y
       raise "Sorry, cannot write null values" unless text
@@ -135,14 +149,14 @@ module ButlerMainframe
     # It creates the object calling subclass method
     # It depends on the emulator chosen but typically the object is present after starting the terminal session
     # These are the options with default values:
-    #     :session          => 1,
-    #     :debug            => true,
-    #     :browser_path     => ButlerMainframe::Settings.browser_path,
-    #     :session_path     => ButlerMainframe::Settings.session_path,
+    #     :session_tag      => Fixnum, String or null depending on emulator
+    #     :debug            => boolean
     def create_object options={}
-      connection_attempts       = 8
-      seconds_between_attempts  = 2
+      connection_attempts       = 10
+      seconds_between_attempts  = 1
 
+      # Creating session object for emulators managed by API
+      # Some emulator may start session terminal and return a process id in @pid
       sub_create_object options
 
       if sub_object_created?
@@ -151,23 +165,10 @@ module ButlerMainframe
         # if the terminal is not found then we start it
         puts "Session #{@session_tag} not found, starting new..." if @debug
 
-        executable, args =  if options[:browser_path] && !options[:browser_path].empty?
-                              [options[:browser_path], options[:session_url]]
-                            elsif options[:session_path] && !options[:session_path].empty?
-                              [options[:session_path], nil]
-                            else
-                              [nil, nil]
-                            end
-        raise "Specify an executable in the configuration file!" unless executable
+        # Starting executable, check configuration file
+        start_terminal_session options
 
-        if /^1.8/ === RUBY_VERSION
-          Thread.new {system "#{executable} #{args}"}
-          @pid = $?.pid if $?
-        else
-          #It works only on ruby 1.9+
-          @pid = Process.spawn *[executable, args].compact
-        end
-
+        # New connection attempts after starting session...
         puts "Starting session with process id #{@pid}, wait please..." if @debug
         sleep 2
         connection_attempts.times do
@@ -179,6 +180,7 @@ module ButlerMainframe
 
       raise "Session #{@session_tag} not started. Check the session #{options[:browser_path]} #{options[:session_path]}" unless sub_object_created?
 
+      # Session detected and waiting it become operative
       unless sub_object_ready?
         connection_attempts.times do
           puts "Waiting for the session to be ready..." if @debug
@@ -186,16 +188,42 @@ module ButlerMainframe
         end
       end
 
+      # At this stage the session must be operative otherwise raise an exception
       if sub_object_ready?
         puts "** Connection established with #{sub_name} **"
         puts "Session full name: #{sub_fullname}" if @debug == :full
       else
-        raise "Connection refused. Check session #{@session_tag} with process id #{@pid}"
+        raise "Connection refused. Check session #{@session_tag}#{" with process id #{@pid}" if @pid}!"
       end
 
     rescue
       puts $!.message
       raise $!
+    end
+
+    # Starting terminal session
+    # Options:
+    #     :browser_path     => browser executable path, default value ButlerMainframe::Settings.browser_path (used by web emulator)
+    #     :session_url      => the session url used by browser
+    #     :session_path     => terminal session executable path, default value ButlerMainframe::Settings.session_path
+    def start_terminal_session options
+      # Check configuration to know emulator starting type
+      executable, args =  if options[:browser_path] && !options[:browser_path].empty?
+                            [options[:browser_path], options[:session_url]]
+                          elsif options[:session_path] && !options[:session_path].empty?
+                            [options[:session_path], nil]
+                          else
+                            [nil, nil]
+                          end
+      raise "Specify an executable in the configuration file!" unless executable
+
+      if /^1.8/ === RUBY_VERSION
+        Thread.new {system "#{executable} #{args}"}
+        @pid = $?.pid if $?
+      else
+        #It works only on ruby 1.9+
+        @pid = Process.spawn *[executable, args].compact
+      end
     end
 
     #It reads one line on the screen

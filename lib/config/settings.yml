@@ -1,10 +1,19 @@
 defaults: &defaults
-  cics: 7
-  user: "IBM0001"
-  password: "password"
- #foo: add every variable you need and use it with => ButlerMainframe::Settings.foo
- #  bar: sub variable are accessible with hash => ButlerMainframe::Settings.foo[:bar]
-
+  # The number of iteration through static screen
+  navigation_iterations: 10
+  cics: '7'
+  user: 'YOURUSER'
+  password: 'YOURPASSWORD'
+  #foo: add every variable you need and use it with => ButlerMainframe::Settings.foo
+  #  bar: sub variable are accessible with hash => ButlerMainframe::Settings.foo[:bar]
+  logoff_cics:        'cesf logoff'
+  session_login_tag:  'EMSP00' #use a regular expression
+  cics_selection_tag: 'EMSP01' #use a regular expression
+  company_menu_tag:   '\*\*       \*\*        \*\*        \*\*' #use a regular expression
+  # Starts these transactions from blank cics in order to move forward
+  transactions_cics:
+    company_menu:     'vita'
+    main_application: 'life'
 
 development:
   <<: *defaults

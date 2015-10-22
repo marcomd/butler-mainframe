@@ -26,7 +26,7 @@ At the moment are managed the below emulators. First two are commercial which mu
 
 * [Passport web to host by Rocket Software](http://www.rocketsoftware.com/resource/rocket-passport-web-host-overview)
 * [Personal communication by IBM](http://www-03.ibm.com/software/products/en/pcomm)
-* [x3270 maintained by Paul Mates](http://x3270.bgp.nu/)
+* [x3270 maintained by Paul Mates](http://x3270.bgp.nu/) (only on ruby 1.9+)
 
 
 ## Configuration
@@ -40,9 +40,9 @@ In the config folder there are two files:
 
 config.rb can be used for the configuration of the gem and the emulator
 
-```ruby
-# Example to configure Passport web to host
+Example to configure Passport web to host:
 
+```ruby
 ButlerMainframe.configure do |config|
   config.host_gateway   = :passport
   config.browser_path   = 'c:/Program Files (x86)/Internet Explorer/iexplore.exe'
@@ -52,9 +52,9 @@ ButlerMainframe.configure do |config|
 end
 ```
 
-```ruby
-# Example to configure Personal communication
+Example to configure Personal communication:
 
+```ruby
 ButlerMainframe.configure do |config|
   config.host_gateway   = :pcomm
   config.session_path   = '"C:/Program Files (x86)/IBM/Personal Communications/pcsws.exe" "C:/Users/Marco/AppData/Roaming/IBM/Personal Communications/host3270.ws"'
@@ -63,8 +63,9 @@ ButlerMainframe.configure do |config|
 end
 ```
 
+Example to configure X3270:
+
 ```ruby
-# Example to configure X3270
 ButlerMainframe.configure do |config|
   config.host_gateway   = :x3270
   config.session_path   = '"C:/Program Files (x86)/wc3270/ws3270.exe" 127.0.0.1 -model 2 --'
@@ -171,42 +172,58 @@ run generator to copy configuration files suitable for the emulator you need
 
     rails g butler:install --emulator=passport
 
+You should have a model for every function to perform.
+In this simple example i have to insert an invoice number on a cics map so i create the invoice model:
+
+    rails generate scaffold invoice number:integer
+
+You may create a polimorphic model to save mainframe screen:
+
+    rails generate migration CreateScreens hook_id:integer 'hook_type:string{30}' 'screen_type:integer{1}' video:text 'message:string{160}' 'cursor_x:integer{1}' 'cursor_y:integer{1}'
+
+Create something like this:
+
 ```ruby
 Class Invoice
-    # ... your code
+    has_many :screens, :as => :hook, :dependent => :destroy
 
+    # ... your rails code: validations, scopes etc.
+
+    # Your main function method that perform the action on the mainframe
     def host3270
         @host = ButlerMainframe::Host.new
+
+        # Move to your starting position
+        # They often are static screens so it's easier to use navigate method
         @host.navigate :my_starting_position
 
         # Always check whether we are positioned on the screen that we expect
-        raise 'Screen not expected' unless self.my_function_start_screen?
+        raise 'Screen not expected' unless @host.my_function_start_screen?
 
         # We develop the function.
-        # In this simple case we put a number in a map cics and press Enter
-        @host.write self.invoice_number
+        # In this simple case we put a number in a map CICS at row 10 and column 5
+        # as option we also choose to erase any previous value in the field
+        @host.write self.number, y: 10, x: 5, erase_field_first: true
+
+        # Press enter because the example mainframe program expects it as confirmation
         @host.do_enter
 
-        # to read the confirmation message
-        raise 'Message not expected' unless /SUCCESSFUL/ === self.catch_message
+        # Read the confirmation message otherwise raise an exception
+        raise 'Message not expected' unless /SUCCESSFUL/ === @host.catch_message
 
+        # At the end close the session
         @host.close_session
     rescue
-        host.screenshot :error
+        # Save the screen as error to show to your mainframe users
+        @host.screenshot :error
         # Manage the invoice status etc.
     end
 end
 ```
 
-Create a polimorphic model:
-
-    rails generate screen hook_id:integer 'hook_type:string{30}' 'screen_type:integer{1}' video:text 'message:string{160}' 'cursor_x:integer{1}' 'cursor_y:integer{1}'
-
-In the model to be related to screen we insert:
-
-```ruby
-has_many :screens, :as => :hook, :dependent => :destroy
-```
+Massive uses or one shot depends on your needs.
+The uses are many and only limited by your imagination!
+Experiment and you'll find the solution right for you :rocket:
 
 
 ## Test with rake
@@ -219,6 +236,10 @@ Simple embedded tests
 For more informations:
 
     bundle exec rake -T
+
+These tests consist in iterations of a simple navigation sequence.
+Each iteration uses different latency times, we start from high and therefore simple for the emulator to the default very low.
+It is not so easy make more complex sequence to share because mainframe screens are strongly diversified but everyone can add their own and iterate as many times as deemed appropriate.
 
 
 ## More informations about supported emulators
@@ -336,7 +357,9 @@ session.autECLOIA.ole_methods (screen):
 ### x3270
 
 Documentation can be found [here](http://x3270.bgp.nu/documentation-manpages.html)
+
 __At the moment it doesn't support check on protect area__
+
 __x3270 module works only on ruby 1.9+__
 
 ```ruby
@@ -348,7 +371,7 @@ Read the methods list documentation: [windows](http://x3270.bgp.nu/Windows/wc327
 
 ## ToDo
 
-* Improve unit test
+* <s>Improve unit test</s> **Done** although it is still a simple rake
 * Improve static navigation
 * Add meta class to choose your host method name and multi language support as well
 

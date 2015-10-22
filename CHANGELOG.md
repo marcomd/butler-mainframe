@@ -1,3 +1,13 @@
+0.3.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.2.0...v0.3.0) October 22th, 2015
+------------------------------
+* Improved the host base class code to make it simpler
+* Improved automated tests with a more complex sequence and three iterations with decreasing latencies
+* Pcomm sub class now use safer method to close session
+* x3270 sub class is now more stable, It now passes all the tests although not always, rarely this does not happen with short delay time. There is still something to fix.
+* Improved navigation and added new setting parameters
+* Improved documentation
+* Several little improvements
+
 0.2.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.1.0...v0.2.0) October 20th, 2015
 ------------------------------
 * Added support for the free and open source x3270 terminal emulator, use :x3270 as host gateway in butler configuration

@@ -92,13 +92,13 @@ module ButlerMainframe
           :check_protect              => true
       }.merge(options)
       sub_set_cursor_axes y, x
-      x_cmd "String(#{text})"
+      x_cmd "String(\"#{text}\")", options
       # TODO
       # if options[:check_protect]
       # end
     end
 
-    # Wait text at given coordinates and wait the session is available again
+    # Wait text at given coordinates
     def sub_wait_for_string text, y, x
       x_cmd "Wait(#{@timeout},InputField)"
       total_time = 0.0
@@ -109,12 +109,12 @@ module ButlerMainframe
         # @timeout should be in milliseconds but everything is possible
         break if total_time >= @timeout
       end
-      raise "sub_wait_for_string: string #{text} not found at (#{y}, #{x})" unless sub_scan_row(y, x, text.size) == text
-      true
+      sub_scan_row(y, x, text.size) == text
     end
 
-    def x_cmd cmd
-      puts "x_cmd in: #{cmd}" if @debug
+    # To communicate with executable
+    def x_cmd cmd, options={}
+      puts "x_cmd in: #{options[:sensible_data] ? ('*' * cmd.size) : cmd}" if @debug == :full
       @action[:in].print "#{cmd}\n"
       @action[:in].flush
 
@@ -123,7 +123,7 @@ module ButlerMainframe
 
       line, str_out = '', ''
       while line = @action[:out].gets.chomp do
-        puts "x_cmd out: '#{line}'" if @debug
+        puts "x_cmd out: '#{line}'" if @debug == :full
         break if ar_res.include? line
         str_out << "#{line[6..-1]}" if /^data:\s/ === line
       end

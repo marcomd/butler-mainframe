@@ -4,6 +4,7 @@ require 'mainframe/host_base'
 # This class use IBM personal communication
 # http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/welcome.html
 # http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/host_access08.htm
+# http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en
 module ButlerMainframe
   class Host < HostBase
 
@@ -13,39 +14,41 @@ module ButlerMainframe
     def sub_create_object options={}
       str_obj = 'PComm.autECLSession'
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
-      @action = WIN32OLE.new(str_obj)
-      @action.SetConnectionByName @session_tag
-      @space  = @action.autECLPS
-      @screen = @action.autECLOIA
+      @action[:ole] = WIN32OLE.new(str_obj)
+      @action[:ole].SetConnectionByName @session_tag
+      @space  = @action[:ole].autECLPS
+      @screen = @action[:ole].autECLOIA
     end
 
     # Check is session is started
     def sub_object_created?
-      res = @action && @action.CommStarted
+      res = @action[:ole] && @action[:ole].CommStarted
       puts "#{Time.now.strftime "%H:%M:%S"} Terminal successfully detected" if @debug == :full && res
       res
     end
 
     # Check is session is operative
     def sub_object_ready?
-      res = @action.Ready
+      res = @action[:ole].Ready
       puts "#{Time.now.strftime "%H:%M:%S"} Session ready" if @debug == :full && res
       res
     end
 
     def sub_name
-      "PComm #{@action.Name}"
+      "PComm #{@action[:ole].Name}"
     end
 
     def sub_fullname
-      "#{sub_name} #{@action.ConnType}"
+      "#{sub_name} #{@action[:ole].ConnType}"
     end
 
     #Ends the connection and closes the session
     def sub_close_session
-      @action.StopCommunication
-      @action = nil
-      Process.kill 9, @pid if @pid
+      @action[:ole].StopCommunication
+      @action[:ole] = nil
+      # See http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en
+      Process.spawn "PCOMSTOP /S=#{@session_tag} /q" if @pid
+      # Process.kill 9, @pid #Another way is to kill the process but the session start 2nd process pcscm.exe
     end
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...
