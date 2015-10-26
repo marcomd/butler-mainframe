@@ -31,10 +31,11 @@ At the moment are managed the below emulators. First two are commercial which mu
 
 ## Configuration
 
-In the config folder there are two files:
+In the config folder there are three files:
 
    * config.rb
    * settings.yml
+   * private.yml
 
 ### Emulator configuration
 
@@ -73,9 +74,9 @@ ButlerMainframe.configure do |config|
 end
 ```
 
-### Use configuration
+### Configure the navigation
 
-settings.yml for the variables necessary to use the emulator like user, password, cics selection and everything else. It has one section for every environment in rails style.
+settings.yml and private.yml for the variables necessary to use the emulator like user, password, cics selection and everything else. Put sensible data in the second one and remember to not share it. Both have one section for every environment in rails style.
 
     foo: add every variable you need and use it with => ButlerMainframe::Settings.foo
         bar: sub variable are accessible with hash => ButlerMainframe::Settings.foo[:bar]
@@ -126,7 +127,7 @@ host.scan x: 10, y: 10, len: 10
 host.write 'ruby on rails', :y => 6, :x => 15
 
 # write a text using a hook
-# With the hook you can use a regular expression to search a label on the y axis (3 rows up and down)
+# With the hook you can use a regular expression to search a label on the y axis (2 rows up and down)
 # It is usefull when the y position could change (atm it does not use x axis)
 host.write 'ruby on rails', :y => 6, :x => 15, hook: 'SYSTEM='
 ```
@@ -252,7 +253,7 @@ I'll try to comment supported emulators based on my experience of about 11 years
 
 2. **IBM Personal communication**: it happened that the session got stuck even if it was extremely rare event and i could not never attribute the blame to it. I must also mention the fact that two different processes creates only troubles. High price but at the moment seems to be the best choice.
 
-3. **x3270**: support is improving, it's free and open source. In future may become the best choice.
+3. **x3270**: support is improving, it's free and open source. In the future may become the best choice.
 
 ## More informations about supported emulators
 
@@ -384,20 +385,24 @@ Read the methods list documentation: [windows](http://x3270.bgp.nu/Windows/wc327
 ## ToDo
 
 * <s>Improve unit test</s> **Done** although it is still a simple rake
+* Improve write extending hooks to x axis and other ideas I have in mind
 * Improve static navigation
 * Add meta class to choose your host method name and multi language support as well
+
+## Found a bug?
+
+If you are having a problem please open an issue. You can also send an email to m.mastrodonato@gmail.com
+
+## Contributing
+
+1. Fork it
+2. Create your feature branch (`git checkout -b my-feature`)
+3. Commit your changes (`git commit -am 'I made extensive use of all my creativity'`)
+4. Push to the branch (`git push origin my-feature`)
+5. Create new Pull Request
 
 ## License
 
 The GNU Lesser General Public License, version 3.0 (LGPL-3.0)
 See LICENSE file
 Custom files are yours and not under license.
-
-
-## Found a bug?
-
-If you are having a problem please open an issue. You can also send an email to m.mastrodonato@gmail.com
-
-
-
-

@@ -30,7 +30,10 @@ debug = env == "development" ? true : false
 require "mainframe/emulators/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
 
 
-ButlerMainframe::Settings.load!(File.join(ButlerMainframe.root,'lib','config','settings.yml'), :env => env)
+%w(settings.yml private.yml).each  do |file|
+  filepath = File.join(ButlerMainframe.root,'lib','config',file)
+  ButlerMainframe::Settings.load!(filepath, :env => env) if File.exist? filepath
+end
 
 require 'mainframe/customization/active_record'
 # puts "Extending Host class with #{Host3270::ActiveRecord}" if debug

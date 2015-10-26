@@ -1,0 +1,16 @@
+defaults: &defaults
+  session_user:     ['YOUR_USER', 16, 36]
+  session_password: ['YOUR_PASSWORD', 17, 36]
+  #foo: add every variable you need and use it with => ButlerMainframe::Settings.foo
+  #  bar: sub variable are accessible with hash => ButlerMainframe::Settings.foo[:bar]
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults
+  session_user:     ['YOUR_USER', 16, 36]
+  session_password: ['YOUR_PASSWORD', 17, 36]

@@ -1,3 +1,9 @@
+0.5.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.4.0...v0.5.0) October 26th, 2015
+------------------------------
+* Moved sensible parameters in a separate yml file (private.yml) do not share it
+* Added coordinates to some setting variables
+* Little improvements to navigation method
+
 0.4.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.3.0...v0.4.0) October 22th, 2015
 ------------------------------
 * Improved x3270 sub class stability. Added a delay after session starting
