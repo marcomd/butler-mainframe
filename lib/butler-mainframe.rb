@@ -8,7 +8,6 @@
 
 require 'core/configuration'
 require 'core/configuration_dynamic'
-require 'config/config'
 
 module ButlerMainframe
   def self.root
@@ -16,49 +15,28 @@ module ButlerMainframe
   end
 end
 
-# TODO
-# require 'i18n'
-# I18n.load_path=Dir['config/locales/*.yml']
-# I18n.locale = ButlerMainframe.configuration.language
+# This project use monkey patch for 1.8 compatibility
+require 'mainframe/host_base'
 
-env = Rails.env if defined?(Rails)
-env ||= $ARGV[0] if $ARGV
-env ||= "development"
-debug = env == "development" ? true : false
+# puts "Butler Mainframe #{defined?(Rails) ? 'with' : 'without'} Rails" #DEBUG
+if defined?(Rails)
+  # Rails use own configuration file into initializers folder
 
-# require the emulator sub class specified in the config.rb
-require "mainframe/emulators/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
+  # This module adds additional methods useful only for projects rails
+  require 'mainframe/customization/active_record'
+  class ButlerMainframe::HostBase
+    include ButlerMainframe::ActiveRecord
+  end
+else
+  # ...if it is not a rails project load configuration file
+  require 'config/config'
 
+  # require the emulator sub class specified in the config.rb
+  raise "Define your host gateway in the configuration file!" unless ButlerMainframe.configuration.host_gateway
+  require "mainframe/emulators/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
 
-%w(settings.yml private.yml).each  do |file|
-  filepath = File.join(ButlerMainframe.root,'lib','config',file)
-  ButlerMainframe::Settings.load!(filepath, :env => env) if File.exist? filepath
-end
-
-require 'mainframe/customization/active_record'
-# puts "Extending Host class with #{Host3270::ActiveRecord}" if debug
-# Use monkey patch for 1.8 compatibility
-class ButlerMainframe::Host
-  include Host3270::ActiveRecord
-end
-
-require 'mainframe/customization/generic_functions'
-# puts "Extending Host class with #{Host3270::GenericFunctions}" if debug
-class ButlerMainframe::Host
-  include Host3270::GenericFunctions
-end
-
-if defined?(Host3270::CustomFunctions)
-  # puts "Extending Host class with #{Host3270::CustomFunctions}" if debug
-  class ButlerMainframe::Host
-    include Host3270::CustomFunctions
+  %w(settings.yml private.yml).each  do |file|
+    filepath = File.join(ButlerMainframe.root,'lib','config',file)
+    ButlerMainframe::Settings.load!(filepath, :env => ButlerMainframe.configuration.env) if File.exist? filepath
   end
 end
-
-=begin
-# To test in irb
-require 'butler-mainframe'
-host=ButlerMainframe::Host.new(debug: :full)
-host.scan_page
-host.navigate :next
-=end

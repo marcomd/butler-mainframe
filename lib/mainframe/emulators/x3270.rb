@@ -1,5 +1,4 @@
 require 'open3'
-require 'mainframe/host_base'
 
 # This class use X3270, an interesting project open source
 # http://x3270.bgp.nu/Windows/wc3270-script.html
@@ -14,6 +13,7 @@ module ButlerMainframe
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
       @action = {}
       @action[:in], @action[:out], @action[:thr] = Open3.popen2e(str_obj)
+      @action[:object] = true
       sleep WAIT_AFTER_START_SESSION
       @pid    = @action[:thr].pid
     end
@@ -44,6 +44,7 @@ module ButlerMainframe
     def sub_close_session
       @action[:in].close
       @action[:out].close
+      @action[:object] = nil
     end
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...

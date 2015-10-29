@@ -1,5 +1,4 @@
 require 'win32ole'
-require 'mainframe/host_base'
 
 # This class use Rocket 3270 emulator API
 # http://www.zephyrcorp.com/legacy-integration/Documentation/passport_host_integration_objects.htm
@@ -12,37 +11,37 @@ module ButlerMainframe
     def sub_create_object options={}
       str_obj = 'PASSPORT.System'
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
-      @action[:ole] = WIN32OLE.new(str_obj)
-      @screen = @action[:ole].Sessions(@session_tag).Screen if sub_object_created?
+      @action[:object] = WIN32OLE.new(str_obj)
+      @screen = @action[:object].Sessions(@session_tag).Screen if sub_object_created?
     end
 
     # Check is session is started
     def sub_object_created?
-      res = @action[:ole] && @action[:ole].Sessions(@session_tag)
+      res = @action[:object] && @action[:object].Sessions(@session_tag)
       puts "#{Time.now.strftime "%H:%M:%S"} Terminal successfully detected" if @debug == :full && res
       res
     end
 
     # Check is session is operative
     def sub_object_ready?
-      res = @action[:ole].Sessions(@session_tag).Connected == -1
+      res = @action[:object].Sessions(@session_tag).Connected == -1
       puts "#{Time.now.strftime "%H:%M:%S"} Session ready" if @debug == :full && res
       res
     end
 
     def sub_name
-      "#{@action[:ole].Name} #{@action[:ole].Sessions(@session_tag).Name}"
+      "#{@action[:object].Name} #{@action[:object].Sessions(@session_tag).Name}"
     end
 
     def sub_fullname
-      "#{sub_name} #{@action[:ole].Sessions(@session_tag).FullName}"
+      "#{sub_name} #{@action[:object].Sessions(@session_tag).FullName}"
     end
 
     #Ends the connection and closes the session
     def sub_close_session
-      @action[:ole].Sessions(@session_tag).Close
-      @action[:ole].Quit
-      @action[:ole] = nil
+      @action[:object].Sessions(@session_tag).Close
+      @action[:object].Quit
+      @action[:object] = nil
     end
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...

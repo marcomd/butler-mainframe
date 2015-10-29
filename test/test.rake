@@ -43,27 +43,31 @@ def simple_iteration options={}
   host          = options[:host] || ButlerMainframe::Host.new(params)
 
   navigate host, :session_login
-
   str_screen1 = host.scan_page
   raise 'host.scan_page' if str_screen1.empty?
+  raise 'navigate :session_login => this is not the session login' unless host.session_login?
 
   navigate host, :next
   str_screen2 = host.scan_page
-  raise 'navigate :next does not pass login screen' if str_screen1 == str_screen2
+  raise 'navigate :next from :session_login => the screen is not changed' if str_screen1 == str_screen2
+
+  raise 'navigate :next => does not pass login screen' if host.session_login?
 
   navigate host, :next
-  str_screen2 = host.scan_page
-  raise 'navigate :next does not pass cics selection' if str_screen1 == str_screen2
+  raise 'navigate :next => does not pass cics selection' if host.cics_selection?
 
   # Go back until the first screen
   navigate host, :session_login
+  raise 'navigate :session_login => this is not the session login' unless host.session_login?
 
-  raise "host.scan row failed"  unless host.scan(:y => 1, :x => 1, :len => 80).size             == 80
-  raise "host.scan area failed" unless host.scan(:y1 => 1, :x1 => 1, :y2 => 3, :x2 => 80).size  == 240
+  raise "host.scan row failed"  unless host.scan(:y  => 1, :x  => 1, :len => ButlerMainframe::Host::MAX_TERMINAL_COLUMNS).size == ButlerMainframe::Host::MAX_TERMINAL_COLUMNS
+  raise "host.scan area failed" unless host.scan(:y1 => 1, :x1 => 1, :y2  => 3, :x2 => ButlerMainframe::Host::MAX_TERMINAL_COLUMNS).size == (ButlerMainframe::Host::MAX_TERMINAL_COLUMNS * 3)
 
   navigate host, :back
+  raise 'navigate :back from :session_login => this is not the session login' unless host.session_login?
 
   navigate host, :company_menu
+  raise 'navigate :company_menu from :session_login => this is not the company menu' unless host.company_menu?
 
   navigate host, :next
 

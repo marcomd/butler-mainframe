@@ -7,4 +7,3 @@ bin/*.gem
 mybundle*
 .bundle
 Gemfile.lock
-lib/config/private.yml

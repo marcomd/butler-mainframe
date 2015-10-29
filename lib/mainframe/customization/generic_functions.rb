@@ -1,25 +1,14 @@
 # These modules contain extensions for the Host class
-module Host3270
+module ButlerMainframe
   module GenericFunctions
-
-    def do_enter; exec_command "ENTER" end
-
-    def go_back; exec_command "PA2" end
-
-    def do_confirm; exec_command "PF3" end
-
-    def do_quit; exec_command "CLEAR" end
-
-    def do_erase; exec_command "ERASE EOF" end
 
     # If you add your static screen you must add it in the navigation method to define how to manage it
     def destination_list
-      [
-      :company_menu,
-      :cics_selection,
-      :session_login,
-      :next,
-      :back]
+      [:company_menu,
+       :cics_selection,
+       :session_login,
+       :next,
+       :back]
     end
 
     # Use navigation method to move through the static screens
@@ -236,6 +225,17 @@ module Host3270
       write name, :y => 1, :x => 2
       do_enter
     end
+
+    def do_enter;   exec_command "ENTER"      end
+
+    def go_back;    exec_command "PA2"        end
+
+    def do_confirm; exec_command "PF3"        end
+
+    def do_quit;    exec_command "CLEAR"      end
+
+    def do_erase;   exec_command "ERASE EOF"  end
+
   end
 
 end

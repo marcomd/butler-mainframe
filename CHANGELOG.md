@@ -1,3 +1,10 @@
+0.6.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.5.0...v0.6.0) October 29th, 2015
+------------------------------
+* Improved rails integration
+* Added rails model test with the scaffold generator, see documentation
+* Added env parameter in the configuration file
+* Several little improvements
+
 0.5.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.4.0...v0.5.0) October 26th, 2015
 ------------------------------
 * Moved sensible parameters in a separate yml file (private.yml) do not share it

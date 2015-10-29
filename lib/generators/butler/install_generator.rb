@@ -12,12 +12,19 @@ module Butler
 
       def copy_to_local
         copy_file "butler/templates/custom_functions.rb", "config/initializers/butler_custom_functions.rb"
-        copy_file "../config/settings.yml", "config/butler.yml"
+        copy_file "../config/settings.yml",               "config/butler.yml"
+        copy_file "../config/private.yml",                "config/butler_private.yml"
         file = "config/initializers/butler.rb"
         copy_file "../config/config_EXAMPLE_#{options[:emulator]}.rb", file
         append_file file do
           <<-FILE.gsub(/^            /, '')
-            ButlerMainframe::Settings.load!(File.join(Rails.root,'config','butler.yml'), :env => Rails.env)
+            raise "Define your host gateway in the rails initializer file!" unless ButlerMainframe.configuration.host_gateway
+            require "mainframe/emulators/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
+
+            %w(butler.yml butler_private.yml).each  do |file|
+              filepath = File.join(Rails.root,'config',file)
+              ButlerMainframe::Settings.load!(filepath, :env => Rails.env) if File.exist? filepath
+            end
           FILE
         end
       end

@@ -4,5 +4,6 @@ ButlerMainframe.configure do |config|
   config.session_url    = 'https://YOUR_HOST_IP/zephyr/Ecomes.zwh?sessionprofile=3270dsp/Sessions/host3270'
   config.session_tag    = 1
   config.timeout        = 6000
+ #config.env            = 'production'
 end
 

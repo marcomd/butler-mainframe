@@ -1,5 +1,4 @@
 require 'win32ole'
-require 'mainframe/host_base'
 
 # This class use IBM personal communication
 # http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/welcome.html
@@ -14,38 +13,38 @@ module ButlerMainframe
     def sub_create_object options={}
       str_obj = 'PComm.autECLSession'
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
-      @action[:ole] = WIN32OLE.new(str_obj)
-      @action[:ole].SetConnectionByName @session_tag
-      @space  = @action[:ole].autECLPS
-      @screen = @action[:ole].autECLOIA
+      @action[:object] = WIN32OLE.new(str_obj)
+      @action[:object].SetConnectionByName @session_tag
+      @space  = @action[:object].autECLPS
+      @screen = @action[:object].autECLOIA
     end
 
     # Check is session is started
     def sub_object_created?
-      res = @action[:ole] && @action[:ole].CommStarted
+      res = @action[:object] && @action[:object].CommStarted
       puts "#{Time.now.strftime "%H:%M:%S"} Terminal successfully detected" if @debug == :full && res
       res
     end
 
     # Check is session is operative
     def sub_object_ready?
-      res = @action[:ole].Ready
+      res = @action[:object].Ready
       puts "#{Time.now.strftime "%H:%M:%S"} Session ready" if @debug == :full && res
       res
     end
 
     def sub_name
-      "PComm #{@action[:ole].Name}"
+      "PComm #{@action[:object].Name}"
     end
 
     def sub_fullname
-      "#{sub_name} #{@action[:ole].ConnType}"
+      "#{sub_name} #{@action[:object].ConnType}"
     end
 
     #Ends the connection and closes the session
     def sub_close_session
-      @action[:ole].StopCommunication
-      @action[:ole] = nil
+      @action[:object].StopCommunication
+      @action[:object] = nil
       # See http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en
       Process.spawn "PCOMSTOP /S=#{@session_tag} /q" if @pid
       # Process.kill 9, @pid #Another way is to kill the process but the session start 2nd process pcscm.exe

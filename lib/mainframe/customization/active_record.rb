@@ -1,5 +1,5 @@
 # These modules contain extensions for the Host class
-module Host3270
+module ButlerMainframe
   # This module can be use on rails project.
   #
   # Create a polimorphic model:

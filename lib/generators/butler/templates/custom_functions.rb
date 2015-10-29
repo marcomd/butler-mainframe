@@ -1,27 +1,16 @@
 # These modules contain extensions for the Host class
-module Host3270
+module ButlerMainframe
   module CustomFunctions
     ### Insert here your custom methods ###
 
     ### Update default generic function ###
-    # def do_enter; exec_command "ENTER" end
-    #
-    # def go_back; exec_command "PA2" end
-    #
-    # def do_confirm; exec_command "PF3" end
-    #
-    # def do_quit; exec_command "CLEAR" end
-    #
-    # def do_erase; exec_command "ERASE EOF" end
-    #
-    # # If you add your static screen you must add it in the navigation method to define how to manage it
+    # If you add your static screen you must add it in the navigation method to define how to manage it
     # def destination_list
-    #   [
-    #       :company_menu,
-    #       :cics_selection,
-    #       :session_login,
-    #       :next,
-    #       :back]
+    #   [:company_menu,
+    #    :cics_selection,
+    #    :session_login,
+    #    :next,
+    #    :back]
     # end
     #
     # # Use navigation method to move through the static screens
@@ -32,91 +21,98 @@ module Host3270
     # # :raise_on_abend   => false raise an exception if an abend is occured
     # def navigate destination, options={}
     #   options = {
+    #       :session_user     => ButlerMainframe::Settings.session_user,
+    #       :session_password => ButlerMainframe::Settings.session_password,
     #       :cics             => ButlerMainframe::Settings.cics,
-    #       :user             => ButlerMainframe::Settings.user,
-    #       :password         => ButlerMainframe::Settings.password,
+    #       :company_menu     => ButlerMainframe::Settings.company_menu,
     #       :raise_on_abend   => false
     #   }.merge(options)
-    #   attempts_number       = ButlerMainframe::Settings.navigation_iterations
+    #   max_attempts_number   = ButlerMainframe::Settings.max_attempts_number
     #   transactions_cics     = ButlerMainframe::Settings.transactions_cics
     #
     #   raise "Destination #{destination} not valid, please use: #{destination_list.join(', ')}" unless destination_list.include? destination
-    #   bol_found = nil
-    #   attempts_number.times do
+    #
+    #   puts "Navigating to #{destination}" if @debug
+    #   destination_found = nil
+    #   attempt_number    = 0
+    #   while !destination_found do
+    #     attempt_number += 1
+    #
     #     if abend?
+    #       puts "Navigate: abend" if @debug
     #       options[:raise_on_abend] ? raise(catch_abend) : do_quit
     #     elsif company_menu?
+    #       puts "Navigating to #{destination} from company menu" if @debug
     #       case destination
     #         when  :cics_selection,
     #             :session_login      then
     #           do_quit
     #         when  :back               then
     #           do_quit
-    #           bol_found = true; break
+    #           destination_found = true
     #         when :next                then
-    #           company_menu
-    #           bol_found = true; break
-    #         when :company_menu        then bol_found = true; break
+    #           company_menu options[:company_menu]
+    #           destination_found = true
+    #         when :company_menu        then destination_found = true
     #         else
     #           # Every other destination is forward
-    #           company_menu
+    #           company_menu options[:company_menu]
     #       end
     #     elsif cics?
+    #       puts "Navigating to #{destination} from cics" if @debug
     #       case destination
     #         when :cics_selection,
     #             :session_login       then
-    #           write ButlerMainframe::Settings.logoff_cics, :y => 1, :x => 1
-    #           do_enter
+    #           execute_cics ButlerMainframe::Settings.logoff_cics
     #         when :back                then
-    #           write ButlerMainframe::Settings.logoff_cics, :y => 1, :x => 1
-    #           do_enter
-    #           bol_found = true; break
+    #           execute_cics ButlerMainframe::Settings.logoff_cics
+    #           destination_found = true
     #         when :next                then
-    #           write transactions_cics[:main_application], :y => 1, :x => 1
-    #           do_enter
-    #           bol_found = true; break
+    #           execute_cics transactions_cics[:main_application]
+    #           destination_found = true
     #         when :company_menu        then
-    #           write transactions_cics[:company_menu], :y => 1, :x => 1
-    #           do_enter
+    #           execute_cics transactions_cics[:company_menu]
     #         else
     #           #If we are in CICS with blank screen start the first transaction
-    #           write transactions_cics[:main_application], :y => 1, :x => 1
-    #           do_enter
+    #           execute_cics transactions_cics[:main_application]
     #       end
     #     elsif cics_selection?
+    #       puts "Navigating to #{destination} from cics selection" if @debug
     #       case destination
-    #         when :cics_selection      then bol_found = true; break
+    #         when :cics_selection      then destination_found = true
     #         when :session_login       then exec_command("PF3")
     #         when :next                then
     #           cics_selection options[:cics] if options[:cics]
-    #           bol_found = true; break
+    #           destination_found = true
     #         when :back                then
     #           exec_command("PF3")
-    #           bol_found = true; break
+    #           destination_found = true
     #         else
     #           cics_selection options[:cics] if options[:cics]
     #       end
     #     elsif session_login?
+    #       puts "Navigating to #{destination} from session login" if @debug
     #       case destination
     #         when :session_login,
-    #             :back                then bol_found = true; break
+    #             :back                then destination_found = true
     #         when :next                then
-    #           session_login options[:user], options[:password] if options[:user] && options[:password]
-    #           bol_found = true; break
+    #           session_login options[:session_user], options[:session_password]
+    #           destination_found = true
     #         else
-    #           session_login options[:user], options[:password] if options[:user] && options[:password]
+    #           session_login options[:session_user], options[:session_password]
     #       end
     #     else
+    #       puts "Navigating to #{destination} from unknown screen" if @debug
     #       # If we do not know where we are...
     #       case destination
-    #         when  :session_login    then
+    #         when  :session_login      then
     #           # ...to come back to the first screen we surely have to go back
     #           go_back
     #         when  :back               then
     #           # ...we can try to go back (not all the screen may go back in the same way)
     #           go_back
-    #           bol_found = true; break
-    #         when :next              then
+    #           destination_found = true
+    #         when :next                then
     #           # ...but we dont know how to move forward
     #           raise "Define how to go forward in the navigation method on generic function module"
     #         else
@@ -124,10 +120,11 @@ module Host3270
     #           raise "Destination #{destination} not defined in the current screen"
     #       end
     #     end
+    #     break if attempt_number > max_attempts_number
     #     wait_session
     #   end
     #
-    #   raise "It was waiting #{destination} map instead of: #{screen_title(:rows => 2).strip}" unless bol_found
+    #   raise "It was waiting #{destination} map instead of: #{screen_title(:rows => 2).strip}" unless destination_found
     # end
     #
     # # Check if we are the first blank cics screen
@@ -141,15 +138,20 @@ module Host3270
     # end
     #
     # # Login to mainframe
-    # # param1 user
-    # # param2 password [sensible data]
-    # def session_login user, password
+    # # param1 user(array)        [text, y, x]
+    # # param2 password(array)    [text, y, x]
+    # def session_login ar_user, ar_password
     #   puts "Starting session login..." if @debug
+    #   user,     y_user,     x_user      = ar_user
+    #   raise "Check session user configuration! #{user} #{y_user} #{x_user}" unless user && y_user && x_user
+    #   password, y_password, x_password  = ar_password
+    #   raise "Check session password configuration! #{password} #{y_password} #{x_password}" unless password && y_password && x_password
+    #
     #   wait_session
     #   #inizializza_sessione
     #   raise "It was waiting session login map instead of: #{screen_title}" unless session_login?
-    #   write user,      :y => 16, :x => 36
-    #   write password,  :y => 17, :x => 36, :sensible_data => true
+    #   write user,      :y => y_user,      :x => x_user
+    #   write password,  :y => y_password,  :x => x_password, :sensible_data => true
     #   do_enter
     # end
     #
@@ -159,12 +161,15 @@ module Host3270
     # end
     #
     # # On this map, we have to select the cics environment
-    # # param1 cics usually is a number
-    # def cics_selection cics
+    # # param1 cics(array)        [text, y, x]
+    # def cics_selection ar_cics
     #   puts "Starting selezione_cics..." if @debug
+    #   cics, y_cics, x_cics = ar_cics
+    #   raise "Check cics configuration! #{cics} #{y_cics} #{x_cics}" unless cics && y_cics && x_cics
+    #
     #   wait_session
     #   raise "It was waiting cics selezion map instead of: #{screen_title}, message: #{catch_message}" unless cics_selection?
-    #   write cics, :y => 23, :x => 14
+    #   write cics, :y => y_cics,   :x => x_cics
     #   do_enter
     #   wait_session 1
     # end
@@ -176,11 +181,14 @@ module Host3270
     #
     # # On this map, we have to select the cics environment
     # # param1 cics usually is a number
-    # def company_menu
+    # def company_menu ar_menu
     #   puts "Starting company menu..." if @debug
+    #   menu, y_menu, x_menu = ar_menu
+    #   raise "Check company menu configuration! #{menu} #{y_menu} #{x_menu}" unless menu && y_menu && x_menu
+    #
     #   wait_session
     #   raise "It was waiting company menu map instead of: #{screen_title}, message: #{catch_message}" unless company_menu?
-    #   write "01", :y => 24, :x => 43
+    #   write menu, :y => y_menu, :x => x_menu
     #   do_enter
     # end
     #
@@ -214,9 +222,24 @@ module Host3270
     #   }.merge(options)
     #   scan(:y1 => 1, :x1 => 1, :y2 => options[:rows], :x2 => 80)
     # end
+    #
+    # def execute_cics name
+    #   write name, :y => 1, :x => 2
+    #   do_enter
+    # end
+    #
+    # def do_enter; exec_command "ENTER" end
+    #
+    # def go_back; exec_command "PA2" end
+    #
+    # def do_confirm; exec_command "PF3" end
+    #
+    # def do_quit; exec_command "CLEAR" end
+    #
+    # def do_erase; exec_command "ERASE EOF" end
   end
 end
 
 class ButlerMainframe::Host
-  include Host3270::CustomFunctions
+  include ButlerMainframe::CustomFunctions
 end

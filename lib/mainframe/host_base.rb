@@ -1,7 +1,10 @@
+require 'mainframe/customization/generic_functions'
+
 module ButlerMainframe
   # This is the host class base that contains high level logic
   # It uses sub method that have to be defined in the specific sub class
   class HostBase
+    include ButlerMainframe::GenericFunctions
 
     attr_reader :action, :wait
     attr_accessor :debug
@@ -40,6 +43,10 @@ module ButlerMainframe
 
     # Ends the connection and closes the session
     def close_session
+      # puts "[DEPRECATED] .close_session will no longer be available, please use .quit"
+      quit
+    end
+    def quit
       puts "Closing session with criterion \"#{@close_session}\"" if @debug
       case @close_session
         when :always
@@ -56,6 +63,7 @@ module ButlerMainframe
           end
       end
     end
+
 
     # Sleep time between operations
     def wait_session wait=nil

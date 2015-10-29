@@ -160,7 +160,7 @@ My advice is to use navigate method for generic navigation and use a specific mo
 
 ## With Rails
 
-This module can be use on rails project.
+This gem can be use on rails project.
 Add in your gemfile
 
     gem 'butler-mainframe'
@@ -169,11 +169,11 @@ then
 
     bundle install
 
-run generator to copy configuration files suitable for the emulator you need
+run generator to copy configuration files passing your emulator as parameter (default x3270)
 
-    rails g butler:install --emulator=passport
+    rails g butler:install --emulator=pcomm
 
-You should have a model for every function to perform.
+My advice is to have a model for every function.
 In this simple example i have to insert an invoice number on a cics map so i create the invoice model:
 
     rails generate scaffold invoice number:integer
@@ -222,12 +222,49 @@ Class Invoice
 end
 ```
 
-Massive uses or one shot depends on your needs.
-The uses are many and only limited by your imagination!
-Experiment and you'll find the solution right for you :rocket:
+If massive uses or one shot depends on your needs and according to these must be optimized the function.
 
+The uses are many and only limited by your imagination! :rocket:
 
-## Test with rake
+Experiment and you'll find the solution right for you
+
+## Test
+
+### Test models with rails
+
+Add the butler test helper in yours rails config/application.rb before create the resource.
+In this way will be added for you the test cases for that model.
+Available only for the test unit framework.
+
+```ruby
+config.generators do |g|
+  ...
+  g.test_framework  :test_unit
+  g.helper          :butler_mainframe_test
+end
+```
+
+For example if you created the invoice resource:
+
+With rails 4:
+
+    rake test test\models\butler_mainframe_invoice_test.rb
+
+Rails 3 is not tested yet:
+
+    ruby -I test unit butler_mainframe_invoice_test.rb
+
+You should get something like this:
+
+    ** Connection established with PComm A **
+    ...
+    Session closed because started by this process with id 1234
+
+    Finished in 13.044988s, 0.1533 runs/s, 0.3066 assertions/s.
+
+    2 runs, 4 assertions, 0 failures, 0 errors, 0 skips
+
+### Test with rake
 
 Simple embedded tests
 
