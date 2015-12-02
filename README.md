@@ -130,6 +130,10 @@ host.write 'ruby on rails', :y => 6, :x => 15
 # With the hook you can use a regular expression to search a label on the y axis (2 rows up and down)
 # It is usefull when the y position could change (atm it does not use x axis)
 host.write 'ruby on rails', :y => 6, :x => 15, hook: 'SYSTEM='
+
+# write a text erasing the field text currently on the screen. This executes a erase_eof command before writing.
+host.write 'ruby on rails', :y => 6, :x => 15, hook: 'SYSTEM=', erase_before_writing: true
+# If you have to do it permanently, you can set it when you instantiate the object: host = ButlerMainframe::Host.new(erase_before_writing: true)
 ```
 
 ### Navigate
@@ -204,7 +208,7 @@ Class Invoice
         # We develop the function.
         # In this simple case we put a number in a map CICS at row 10 and column 5
         # as option we also choose to erase any previous value in the field
-        @host.write self.number, y: 10, x: 5, erase_field_first: true
+        @host.write self.number, y: 10, x: 5, erase_before_writing: true
 
         # Press enter because the example mainframe program expects it as confirmation
         @host.do_enter
@@ -418,13 +422,6 @@ stdin, stdout, thread = Open3.popen2e('"C:/Program Files (x86)/wc3270/ws3270.exe
 ```
 
 Read the methods list documentation: [windows](http://x3270.bgp.nu/Windows/wc3270-script.html) or [unix](http://x3270.bgp.nu/Unix/x3270-script.html)
-
-## ToDo
-
-* <s>Improve unit test</s> **Done** although it is still a simple rake
-* Improve write extending hooks to x axis and other ideas I have in mind
-* Improve static navigation
-* Add meta class to choose your host method name and multi language support as well
 
 ## Found a bug?
 

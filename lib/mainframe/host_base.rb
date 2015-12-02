@@ -15,28 +15,30 @@ module ButlerMainframe
 
     def initialize options={}
       options = {
-          :session_tag      => ButlerMainframe.configuration.session_tag,
-          :wait             => 0.01,  #wait screen in seconds
-          :wait_debug       => 2,     #wait time for debug purpose
-          :debug            => false,
-          :browser_path     => ButlerMainframe.configuration.browser_path,
-          :session_url      => ButlerMainframe.configuration.session_url,
-          :session_path     => ButlerMainframe.configuration.session_path,
-          :timeout          => ButlerMainframe.configuration.timeout,
-          :close_session    => :evaluate
-                              #:evaluate    if the session is found will not be closed
-                              #:never       never close the session
-                              #:always      the session is always closed
+          :session_tag          => ButlerMainframe.configuration.session_tag,
+          :wait                 => 0.01,  # wait screen in seconds
+          :wait_debug           => 2,     # wait time for debug purpose
+          :debug                => false,
+          :browser_path         => ButlerMainframe.configuration.browser_path,
+          :session_url          => ButlerMainframe.configuration.session_url,
+          :session_path         => ButlerMainframe.configuration.session_path,
+          :timeout              => ButlerMainframe.configuration.timeout,
+          :erase_before_writing => false, # execute an erase until end of field before write a text
+          :close_session        => :evaluate
+                                    #:evaluate    if the session is found will not be closed
+                                    #:never       never close the session
+                                    #:always      the session is always closed
       }.merge(options)
 
-      @debug            = options[:debug]
-      @wait             = options[:wait]
-      @wait_debug       = options[:wait_debug]
-      @session_tag      = options[:session_tag]
-      @close_session    = options[:close_session]
-      @timeout          = options[:timeout]
-      @action           = {}
-      @pid              = nil
+      @debug                = options[:debug]
+      @wait                 = options[:wait]
+      @wait_debug           = options[:wait_debug]
+      @session_tag          = options[:session_tag]
+      @close_session        = options[:close_session]
+      @timeout              = options[:timeout]
+      @erase_before_writing = options[:timeout]
+      @action               = {}
+      @pid                  = nil
 
       create_object options
     end
@@ -80,8 +82,8 @@ module ButlerMainframe
     # It reads one line or an area on the screen according to parameters supplied
     def scan options={}
       options = {
-          :y => nil, :x => nil, :len => nil,
-          :y1 => nil, :x1 => nil, :y2 => nil, :x2 => nil,
+          :y  => nil, :x  => nil, :len => nil,
+          :y1 => nil, :x1 => nil, :y2  => nil, :x2 => nil,
       }.merge(options)
       if options[:len]
         scan_row options[:y], options[:x], options[:len]
@@ -104,18 +106,20 @@ module ButlerMainframe
     #     :check                      => true,
     #     :raise_error_on_check       => true,
     #     :sensible_data              => nil,
-    #     :clean_first_chars          => nil, # clean x chars before writing a value
-    #     :erase_field_first          => nil  # erase first until end of field
+    #     :clean_chars_before_writing => nil, # clean x chars before writing a value
+    #     :erase_before_writing       => nil  # execute an erase until end of field before write a text
     def write text, options={}
+      options = show_deprecated_param(:erase_field_first, :erase_before_writing, options)       if options[:erase_field_first]
+      options = show_deprecated_param(:clean_first_chars, :clean_chars_before_writing, options) if options[:clean_first_chars]
       options = {
           :hook                       => nil,
-          :y                          => nil, #row
-          :x                          => nil, #column
+          :y                          => nil,
+          :x                          => nil,
           :check                      => true,
           :raise_error_on_check       => true,
           :sensible_data              => nil,
-          :clean_first_chars          => nil, # clean x chars before writing a value
-          :erase_field_first          => nil  # erase first until end of field
+          :clean_chars_before_writing => nil,
+          :erase_before_writing       => @erase_before_writing
       }.merge(options)
 
       y           = options[:y]
@@ -124,8 +128,8 @@ module ButlerMainframe
       x         ||= get_cursor_axes[1]
 
       hooked_rows = 2
-      raise "Missing coordinates! y(row)=#{y} x(column)=#{x} " unless x && y
-      raise "Sorry, cannot write null values" unless text
+      raise "Missing coordinates! y(row)=#{y} x(column)=#{x} "  unless x && y
+      raise "Sorry, cannot write null values"                   unless text
 
       bol_written = false
       if options[:hook]
@@ -258,7 +262,7 @@ module ButlerMainframe
           :raise_error_on_check       => true,
           :sensible_data              => nil,
           :clean_first_chars          => nil,
-          :erase_field_first          => nil
+          :erase_before_writing       => nil
       }.merge(options)
       raise "Impossible to write beyond row #{MAX_TERMINAL_ROWS}"       if y > MAX_TERMINAL_ROWS
       raise "Impossible to write beyond column #{MAX_TERMINAL_COLUMNS}" if x > MAX_TERMINAL_COLUMNS
@@ -273,7 +277,7 @@ module ButlerMainframe
         end
       end
 
-      if options[:erase_field_first]
+      if options[:erase_before_writing]
         set_cursor_axes y, x
         do_erase
       end
@@ -293,6 +297,16 @@ module ButlerMainframe
         end
       end
       res
+    end
+
+    def show_deprecated_param old, new, params={}
+      #Ruby 2+ caller_locations(1,1)[0].label
+      puts "[DEPRECATION] please use param :#{new} instead of :#{old} for method #{caller[0][/`([^']*)'/, 1]}"
+      # Creating new param with the value of the old param
+      {new => params[old]}.merge(params)
+    end
+    def show_deprecated_method new
+      puts "[DEPRECATION] please use #{new} method instead of #{caller[0][/`([^']*)'/, 1]}"
     end
 
     # If is called a not existing method there is the chance that an optional module may not have been added

@@ -1,7 +1,7 @@
 Gem::Specification.new do |s|
   s.name = 'butler-mainframe'
-  s.version = '0.6.0'
-  s.date = '2015-10-29'
+  s.version = '0.7.0'
+  s.date = '2015-12-02'
   s.summary = 'A virtual butler to perform tasks on a 3270 emulator'
   s.description = 'This gem provides a virtual butler which can perform your custom tasks on a 3270 emulator. Choose your emulator, configure your task and discover a new world!'
   s.homepage = 'https://github.com/marcomd/butler-mainframe'

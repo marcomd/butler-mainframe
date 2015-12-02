@@ -1,3 +1,10 @@
+0.7.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.6.0...v0.7.0) December 2th, 2015
+------------------------------
+* Now is possible to set erase_before_writing permanently to execute an erase until end of field before writing a text
+* Changed param name in write method: erase_before_writing instead of erase_field_first       => deprecation warning
+* Changed param name in write method: clean_chars_before_writing instead of clean_first_chars => deprecation warning
+* Changed method name: screen_title becomes catch_title to align it to the methods name that provide a similar result => deprecation warning
+
 0.6.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.5.0...v0.6.0) October 29th, 2015
 ------------------------------
 * Improved rails integration

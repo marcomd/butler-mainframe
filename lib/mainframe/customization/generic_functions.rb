@@ -122,7 +122,7 @@ module ButlerMainframe
         wait_session
       end
 
-      raise "It was waiting #{destination} map instead of: #{screen_title(:rows => 2).strip}" unless destination_found
+      raise "It was waiting #{destination} map instead of: #{catch_title(:rows => 2).strip}" unless destination_found
     end
 
     # Check if we are the first blank cics screen
@@ -132,7 +132,7 @@ module ButlerMainframe
 
     # Check if we are on the login mainframe screen
     def session_login?
-      /#{ButlerMainframe::Settings.session_login_tag}/i === screen_title
+      /#{ButlerMainframe::Settings.session_login_tag}/i === catch_title
     end
 
     # Login to mainframe
@@ -147,7 +147,7 @@ module ButlerMainframe
 
       wait_session
       #inizializza_sessione
-      raise "It was waiting session login map instead of: #{screen_title}" unless session_login?
+      raise "It was waiting session login map instead of: #{catch_title}" unless session_login?
       write user,      :y => y_user,      :x => x_user
       write password,  :y => y_password,  :x => x_password, :sensible_data => true
       do_enter
@@ -155,7 +155,7 @@ module ButlerMainframe
 
     # Check the label to know when we are on the cics selection map
     def cics_selection?
-      /#{ButlerMainframe::Settings.cics_selection_tag}/i === screen_title
+      /#{ButlerMainframe::Settings.cics_selection_tag}/i === catch_title
     end
 
     # On this map, we have to select the cics environment
@@ -166,7 +166,7 @@ module ButlerMainframe
       raise "Check cics configuration! #{cics} #{y_cics} #{x_cics}" unless cics && y_cics && x_cics
 
       wait_session
-      raise "It was waiting cics selezion map instead of: #{screen_title}, message: #{catch_message}" unless cics_selection?
+      raise "It was waiting cics selezion map instead of: #{catch_title}, message: #{catch_message}" unless cics_selection?
       write cics, :y => y_cics,   :x => x_cics
       do_enter
       wait_session 1
@@ -174,7 +174,7 @@ module ButlerMainframe
 
     # Check the label to know when we are on the cics selection map
     def company_menu?
-      /#{ButlerMainframe::Settings.company_menu_tag}/i === screen_title
+      /#{ButlerMainframe::Settings.company_menu_tag}/i === catch_title
     end
 
     # On this map, we have to select the cics environment
@@ -185,7 +185,7 @@ module ButlerMainframe
       raise "Check company menu configuration! #{menu} #{y_menu} #{x_menu}" unless menu && y_menu && x_menu
 
       wait_session
-      raise "It was waiting company menu map instead of: #{screen_title}, message: #{catch_message}" unless company_menu?
+      raise "It was waiting company menu map instead of: #{catch_title}, message: #{catch_message}" unless company_menu?
       write menu, :y => y_menu, :x => x_menu
       do_enter
     end
@@ -214,11 +214,15 @@ module ButlerMainframe
 
     # Get the title usually the first row
     # You can change default option :rows to get more lines starting from the first
-    def screen_title options={}
+    def catch_title options={}
       options = {
           :rows                      => 1
       }.merge(options)
       scan(:y1 => 1, :x1 => 1, :y2 => options[:rows], :x2 => 80)
+    end
+    def screen_title options={}
+      show_deprecated_method 'catch_title'
+      catch_title options
     end
 
     def execute_cics name
