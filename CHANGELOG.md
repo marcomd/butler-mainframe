@@ -1,3 +1,7 @@
+0.7.1 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.0...v0.7.1) January 12th, 2016
+------------------------------
+* Now the message contains the coordinates when you try to write a null value
+
 0.7.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.6.0...v0.7.0) December 2th, 2015
 ------------------------------
 * Now is possible to set erase_before_writing permanently to execute an erase until end of field before writing a text

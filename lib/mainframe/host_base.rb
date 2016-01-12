@@ -129,7 +129,7 @@ module ButlerMainframe
 
       hooked_rows = 2
       raise "Missing coordinates! y(row)=#{y} x(column)=#{x} "  unless x && y
-      raise "Sorry, cannot write null values"                   unless text
+      raise "Sorry, cannot write null values at y=#{y} x=#{x}"  unless text
 
       bol_written = false
       if options[:hook]
