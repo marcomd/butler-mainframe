@@ -19,7 +19,7 @@ module Butler
         append_file file do
           <<-FILE.gsub(/^            /, '')
             raise "Define your host gateway in the rails initializer file!" unless ButlerMainframe.configuration.host_gateway
-            require "mainframe/emulators/#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
+            require "mainframe/emulators/\#{ButlerMainframe.configuration.host_gateway.to_s.downcase}"
 
             %w(butler.yml butler_private.yml).each  do |file|
               filepath = File.join(Rails.root,'config',file)

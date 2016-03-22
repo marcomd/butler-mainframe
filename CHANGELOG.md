@@ -1,3 +1,7 @@
+0.7.2 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.1...v0.7.2) March 22th, 2016
+------------------------------
+* Fixed a bug during install in a rails project
+
 0.7.1 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.0...v0.7.1) January 12th, 2016
 ------------------------------
 * Now the message contains the coordinates when you try to write a null value
