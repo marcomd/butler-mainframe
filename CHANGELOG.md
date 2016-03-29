@@ -1,3 +1,7 @@
+0.7.3 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.2...v0.7.3) March 29th, 2016
+------------------------------
+* PComm emulator: fixed a bug when closing the session with ruby 1.8
+
 0.7.2 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.1...v0.7.2) March 22th, 2016
 ------------------------------
 * Fixed a bug during install in a rails project

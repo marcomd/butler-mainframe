@@ -45,9 +45,16 @@ module ButlerMainframe
     def sub_close_session
       @action[:object].StopCommunication
       @action[:object] = nil
-      # See http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en
-      Process.spawn "PCOMSTOP /S=#{@session_tag} /q" if @pid
-      # Process.kill 9, @pid #Another way is to kill the process but the session start 2nd process pcscm.exe
+      if @pid
+        # See http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en
+        cmd_stop = "PCOMSTOP /S=#{@session_tag} /q"
+        if /^1.8/ === RUBY_VERSION
+          Thread.new {system cmd_stop}
+        else
+          Process.spawn cmd_stop
+        end
+        # Process.kill 9, @pid #Another way is to kill the process but the session start 2nd process pcscm.exe
+      end
     end
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...
