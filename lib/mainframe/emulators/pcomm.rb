@@ -43,7 +43,7 @@ module ButlerMainframe
 
     #Ends the connection and closes the session
     def sub_close_session
-      @action[:object].StopCommunication
+      #@action[:object].StopCommunication #Removed due to session stuck if it will not be closed
       @action[:object] = nil
       if @pid
         # See http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en

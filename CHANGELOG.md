@@ -1,3 +1,10 @@
+0.7.4 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.3...v0.7.4) April 13th, 2016
+------------------------------
+* You can now let the session open with the new quit parameter :never
+* Now you can change the close session parameter after the object was created
+* Improved documentation
+* PComm emulator: removed StopCommunication from quit due to session stuck if it will not be closed
+
 0.7.3 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.2...v0.7.3) March 29th, 2016
 ------------------------------
 * PComm emulator: fixed a bug when closing the session with ruby 1.8

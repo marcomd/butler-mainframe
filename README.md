@@ -13,7 +13,7 @@ Developed on a windows plaftorm.
 
 ## Install
 
-Instal the gem from rubygems
+Install the gem from rubygems
 
     gem install butler-mainframe
 
@@ -49,7 +49,7 @@ ButlerMainframe.configure do |config|
   config.browser_path   = 'c:/Program Files (x86)/Internet Explorer/iexplore.exe'
   config.session_path   = 'https://localhost/zephyr/Ecomes.zwh?sessionprofile=3270dsp/Sessions/host3270'
   config.session_tag    = 1
-  config.timeout        = 3000
+  config.timeout        = 6000
 end
 ```
 
@@ -58,9 +58,12 @@ Example to configure Personal communication:
 ```ruby
 ButlerMainframe.configure do |config|
   config.host_gateway   = :pcomm
-  config.session_path   = '"C:/Program Files (x86)/IBM/Personal Communications/pcsws.exe" "C:/Users/Marco/AppData/Roaming/IBM/Personal Communications/host3270.ws"'
+  config.session_path   = '"C:/Program Files (x86)/IBM/Personal Communications/pcsws.exe" "C:/Users/Marco/AppData/Roaming/IBM/Personal Communications/host3270.ws" /Q /H /S=A'
+  # /Q to suppress starting logo
+  # /H for hidden session
+  # /S=A to select the session A (WARNING: must be the same in session_tag)
   config.session_tag    = 'A'
-  config.timeout        = 3000
+  config.timeout        = 6000
 end
 ```
 
@@ -70,7 +73,7 @@ Example to configure X3270:
 ButlerMainframe.configure do |config|
   config.host_gateway   = :x3270
   config.session_path   = '"C:/Program Files (x86)/wc3270/ws3270.exe" 127.0.0.1 -model 2 --'
-  config.timeout        = 5 # In seconds
+  config.timeout        = 6 # In seconds
 end
 ```
 
@@ -161,6 +164,23 @@ host.navigate :your_favourite_screen
 This is possible because it is configured in the navigate method which have to be configured to fit your needs. You can find it inside lib\mainframe\customization.
 
 My advice is to use navigate method for generic navigation and use a specific module (or rails model) for each task.
+
+### Quit
+
+At the end butler close the session considering how it is opened:
+
+```ruby
+host.quit
+```
+
+The default closing method is `evaluate` but you can force `always` (alias yes) or `never` (alias no)
+
+```ruby
+# How to force close session parameter
+host = ButlerMainframe::Host.new(close_session: :always)
+# or simply
+host.close_session = :always
+```
 
 ## With Rails
 

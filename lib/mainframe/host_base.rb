@@ -7,7 +7,7 @@ module ButlerMainframe
     include ButlerMainframe::GenericFunctions
 
     attr_reader :action, :wait
-    attr_accessor :debug
+    attr_accessor :debug, :close_session
 
     MAX_TERMINAL_COLUMNS      = 80
     MAX_TERMINAL_ROWS         = 24
@@ -51,10 +51,16 @@ module ButlerMainframe
     def quit
       puts "Closing session with criterion \"#{@close_session}\"" if @debug
       case @close_session
-        when :always
+        when :always, :yes
           sub_close_session
           puts "Session closed" if @debug
           wait_session 0.1
+        when :never, :no
+          if @pid
+            puts "Session forced to stay open" if @debug
+          else
+            puts "Session not closed because it was already existing anyway it would not been closed" if @debug
+          end
         when :evaluate
           if @pid
             sub_close_session
