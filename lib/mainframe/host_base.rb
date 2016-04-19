@@ -276,7 +276,7 @@ module ButlerMainframe
 
       if options[:clean_first_chars] && options[:clean_first_chars].to_i > 0
         puts "write_text_on_map: Clean #{options[:clean_first_chars]} char#{options[:clean_first_chars] == 1 ? '' : 's'} y:#{y} x:#{x}" if @debug
-        bol_cleaned = write_text_on_map(" " * options[:clean_first_chars], y, x, options)
+        bol_cleaned = sub_write_text(" " * options[:clean_first_chars], y, x, :check_protect => options[:check])
         unless bol_cleaned
           puts "write_text_on_map: EHI! Impossible to clean the area specified" if @debug
           return false

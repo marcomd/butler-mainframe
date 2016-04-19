@@ -1,3 +1,7 @@
+0.7.5 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.4...v0.7.5) April 19th, 2016
+------------------------------
+* Fixed a bug (Stack level too deep) on the write command when was passed the parameter :clean_first_chars
+
 0.7.4 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.3...v0.7.4) April 13th, 2016
 ------------------------------
 * You can now let the session open with the new quit parameter :never
