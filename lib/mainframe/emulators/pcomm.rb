@@ -101,6 +101,7 @@ module ButlerMainframe
       else
         @space.SetText(text, y, x)
       end
+      true
     end
 
     # Wait text at given coordinates and wait the session is available again

@@ -112,7 +112,7 @@ module ButlerMainframe
     #     :check                      => true,
     #     :raise_error_on_check       => true,
     #     :sensible_data              => nil,
-    #     :clean_chars_before_writing => nil, # clean x chars before writing a value
+    #     :clean_chars_before_writing => nil, # clean x chars before writing a value, it switch off erase_before_writing
     #     :erase_before_writing       => nil  # execute an erase until end of field before write a text
     def write text, options={}
       options = show_deprecated_param(:erase_field_first, :erase_before_writing, options)       if options[:erase_field_first]
@@ -127,6 +127,7 @@ module ButlerMainframe
           :clean_chars_before_writing => nil,
           :erase_before_writing       => @erase_before_writing
       }.merge(options)
+      options[:erase_before_writing] = false if options[:clean_chars_before_writing]
 
       y           = options[:y]
       x           = options[:x]
@@ -267,20 +268,16 @@ module ButlerMainframe
           :check                      => true,
           :raise_error_on_check       => true,
           :sensible_data              => nil,
-          :clean_first_chars          => nil,
+          :clean_chars_before_writing => nil,
           :erase_before_writing       => nil
       }.merge(options)
       raise "Impossible to write beyond row #{MAX_TERMINAL_ROWS}"       if y > MAX_TERMINAL_ROWS
       raise "Impossible to write beyond column #{MAX_TERMINAL_COLUMNS}" if x > MAX_TERMINAL_COLUMNS
       raise "Impossible to write a null value"                          unless text
 
-      if options[:clean_first_chars] && options[:clean_first_chars].to_i > 0
-        puts "write_text_on_map: Clean #{options[:clean_first_chars]} char#{options[:clean_first_chars] == 1 ? '' : 's'} y:#{y} x:#{x}" if @debug
-        bol_cleaned = sub_write_text(" " * options[:clean_first_chars], y, x, :check_protect => options[:check])
-        unless bol_cleaned
-          puts "write_text_on_map: EHI! Impossible to clean the area specified" if @debug
-          return false
-        end
+      if options[:clean_chars_before_writing] && options[:clean_chars_before_writing].to_i > 0
+        puts "write_text_on_map: Clean #{options[:clean_chars_before_writing]} char#{options[:clean_chars_before_writing] == 1 ? '' : 's'} y:#{y} x:#{x}" if @debug
+        sub_write_text(" " * options[:clean_chars_before_writing], y, x, :check_protect => false)
       end
 
       if options[:erase_before_writing]

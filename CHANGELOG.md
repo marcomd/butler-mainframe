@@ -1,6 +1,13 @@
+0.8.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.5...v0.8.0) May 3th, 2016
+------------------------------
+* PComm emulator: the write param 'clean_chars_before_writing' didn't work
+* Improved write with params clean_chars_before_writing:
+    * now switch off erase_before_writing because there might be a conflict
+    * now switch off check protect param which use SendKey and it could provide an unexpected result
+
 0.7.5 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.4...v0.7.5) April 19th, 2016
 ------------------------------
-* Fixed a bug (Stack level too deep) on the write command when was passed the parameter :clean_first_chars
+* Fixed a bug (Stack level too deep) on the write command when was passed the parameter :clean_chars_before_writing
 
 0.7.4 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.3...v0.7.4) April 13th, 2016
 ------------------------------
