@@ -1,3 +1,8 @@
+0.10.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.9.0...v0.10.0) June 21th, 2016
+------------------------------
+* New check keyboard locked for all emulators
+* Now write a value in a protected field return specific error message and avoid to wait the text on the map
+
 0.9.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.8.0...v0.9.0) June 20th, 2016
 ------------------------------
 * PComm emulator: it attempts to start the connection if the terminal is present

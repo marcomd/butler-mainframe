@@ -37,6 +37,7 @@ module ButlerMainframe
       @session_tag          = options[:session_tag]
       @close_session        = options[:close_session]
       @timeout              = options[:timeout]
+      @timeout_screen       = @wait * 1000
       @erase_before_writing = options[:timeout]
       @action               = {}
       @pid                  = nil
@@ -289,10 +290,16 @@ module ButlerMainframe
       # If check is required it verify text is on the screen at given coordinates
       # Sensible data option disable the check because it could be on hidden fields
       if options[:check] && !options[:sensible_data]
-        # It expects the string is present on the session at the specified coordinates
-        unless sub_wait_for_string(text, y, x)
+        if sub_keyboard_locked
           if options[:raise_error_on_check]
-            raise "write_text_on_map: Impossible to write #{options[:sensible_data] ? ('*' * text.size) : text} at row #{y} column #{x}"
+            raise "write_text_on_map: keyboard locked #{options[:sensible_data] ? ('*' * text.size) : text} at row #{y} column #{x}"
+          else
+            res = false
+          end
+        elsif !sub_wait_for_string(text, y, x)
+          # It expects the string is present on the session at the specified coordinates
+          if options[:raise_error_on_check]
+            raise "write_text_on_map: impossible write #{options[:sensible_data] ? ('*' * text.size) : text} at row #{y} column #{x}"
           else
             res = false
           end

@@ -63,10 +63,12 @@ module ButlerMainframe
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...
     def sub_exec_command(cmd, options={})
+      command_skip_timeout = %w(^erase ^delete)
+      timeout = /(#{command_skip_timeout.join('|')})/i === cmd ? @timeout_screen : @timeout
       # Cast cmd to_s cause it could be passed as label
       @space.SendKeys("[#{cmd}]")
-      @screen.WaitForAppAvailable(@timeout)
-      @screen.WaitForInputReady(@timeout)
+      @screen.WaitForAppAvailable(timeout)
+      @screen.WaitForInputReady(timeout)
     end
 
     #It reads one line part of the screen
@@ -110,8 +112,16 @@ module ButlerMainframe
 
     # Wait text at given coordinates and wait the session is available again
     def sub_wait_for_string(text, y, x)
-      @space.WaitForString(text, y, x, @timeout)
-      @screen.WaitForInputReady(@timeout)
+      @space.WaitForString(text, y, x, @timeout_screen)
+      @screen.WaitForInputReady(@timeout_screen)
+    end
+
+    # The keyboard can be locked for any of the following reasons:
+    # - The host has not finished processing your last command.
+    # - You attempted to type into a protected area of the screen.
+    # - You typed too many characters into a field in Insert mode.
+    def sub_keyboard_locked
+      @screen.InputInhibited > 0
     end
 
   end

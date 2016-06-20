@@ -12,7 +12,10 @@ module ButlerMainframe
       str_obj = 'PASSPORT.System'
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
       @action[:object] = WIN32OLE.new(str_obj)
-      @screen = @action[:object].Sessions(@session_tag).Screen if sub_object_created?
+      if sub_object_created?
+        @space  = @action[:object].Sessions(@session_tag)
+        @screen = @space.Screen
+      end
     end
 
     # Check is session is started
@@ -24,22 +27,22 @@ module ButlerMainframe
 
     # Check is session is operative
     def sub_object_ready?
-      res = @action[:object].Sessions(@session_tag).Connected == -1
+      res = @space.Connected == -1
       puts "#{Time.now.strftime "%H:%M:%S"} Session ready" if @debug == :full && res
       res
     end
 
     def sub_name
-      "#{@action[:object].Name} #{@action[:object].Sessions(@session_tag).Name}"
+      "#{@action[:object].Name} #{@space.Name}"
     end
 
     def sub_fullname
-      "#{sub_name} #{@action[:object].Sessions(@session_tag).FullName}"
+      "#{sub_name} #{@space.FullName}"
     end
 
     #Ends the connection and closes the session
     def sub_close_session
-      @action[:object].Sessions(@session_tag).Close
+      @space.Close
       @action[:object].Quit
       @action[:object] = nil
     end
@@ -93,6 +96,14 @@ module ButlerMainframe
     # Wait text at given coordinates and wait the session is available again
     def sub_wait_for_string(text, y, x)
       @screen.WaitForString(text, y, x).Value == -1
+    end
+
+    # The keyboard can be locked for any of the following reasons:
+    # - The host has not finished processing your last command.
+    # - You attempted to type into a protected area of the screen.
+    # - You typed too many characters into a field in Insert mode.
+    def sub_keyboard_locked
+      @space.KeyboardLocked < 0
     end
 
   end

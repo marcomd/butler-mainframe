@@ -102,16 +102,24 @@ module ButlerMainframe
 
     # Wait text at given coordinates
     def sub_wait_for_string(text, y, x)
-      x_cmd "Wait(#{@timeout},InputField)"
+      x_cmd "Wait(#{@timeout_screen},InputField)"
       total_time = 0.0
       sleep_time = 0.5
       while sub_scan_row(y, x, text.size) != text do
         sleep sleep_time
         total_time = total_time + sleep_time
         # @timeout should be in milliseconds but everything is possible
-        break if total_time >= @timeout
+        break if total_time >= @timeout_screen
       end
       sub_scan_row(y, x, text.size) == text
+    end
+
+    # The keyboard can be locked for any of the following reasons:
+    # - The host has not finished processing your last command.
+    # - You attempted to type into a protected area of the screen.
+    # - You typed too many characters into a field in Insert mode.
+    def sub_keyboard_locked
+      /^L / === x_status
     end
 
     # To communicate with executable
@@ -130,6 +138,22 @@ module ButlerMainframe
         str_out << "#{line[6..-1]}" if /^data:\s/ === line
       end
       line == str_res_ok ? str_out : raise(str_out)
+    end
+
+    def x_status
+      @action[:in].print "Query(Cursor)\n"
+      @action[:in].flush
+
+      str_res_ok = 'ok'
+      ar_res = [str_res_ok, 'error']
+
+      line, line_prev = nil, nil
+      while line = @action[:out].gets.chomp do
+        puts "x_cmd out: '#{line}'" if @debug == :full
+        break if ar_res.include? line
+        line_prev = line
+      end
+      line == str_res_ok ? line_prev : raise(line)
     end
 
   end
