@@ -99,7 +99,7 @@ def simple_iteration options={}
 
   navigate host, :session_login
 
-  host.close_session
+  host.quit
 end
 
 # Easy navigation for rake test

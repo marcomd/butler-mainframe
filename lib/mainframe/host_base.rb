@@ -9,11 +9,12 @@ module ButlerMainframe
     attr_reader :action, :wait
     attr_accessor :debug, :close_session
 
-    MAX_TERMINAL_COLUMNS      = 80
-    MAX_TERMINAL_ROWS         = 24
-    WAIT_AFTER_START_SESSION  = 3 #SECONDS
+    MAX_TERMINAL_COLUMNS        = 80
+    MAX_TERMINAL_ROWS           = 24
+    WAIT_AFTER_START_CONNECTION = 1 #SECONDS
+    WAIT_AFTER_START_SESSION    = 3 #SECONDS
 
-    def initialize options={}
+    def initialize(options={})
       options = {
           :session_tag          => ButlerMainframe.configuration.session_tag,
           :wait                 => 0.01,  # wait screen in seconds
@@ -74,33 +75,33 @@ module ButlerMainframe
 
 
     # Sleep time between operations
-    def wait_session wait=nil
+    def wait_session(wait=nil)
       sleep(wait || (@debug ? @wait_debug : @wait))
     end
 
     # Execute keyboard command like PF1 or PA2 or ENTER ...
-    def exec_command cmd
+    def exec_command(cmd)
       puts "Command: #{cmd}" if @debug
       sub_exec_command cmd
       wait_session
     end
 
     # It reads one line or an area on the screen according to parameters supplied
-    def scan options={}
+    def scan(options={})
       options = {
           :y  => nil, :x  => nil, :len => nil,
           :y1 => nil, :x1 => nil, :y2  => nil, :x2 => nil,
       }.merge(options)
       if options[:len]
-        scan_row options[:y], options[:x], options[:len]
+        scan_row(options[:y], options[:x], options[:len])
       else
-        scan_area options[:y1], options[:x1], options[:y2], options[:x2]
+        scan_area(options[:y1], options[:x1], options[:y2], options[:x2])
       end
     end
 
     # Scans and returns the text of the entire page
     def scan_page
-      scan_area 1, 1, MAX_TERMINAL_ROWS, MAX_TERMINAL_COLUMNS
+      scan_area(1, 1, MAX_TERMINAL_ROWS, MAX_TERMINAL_COLUMNS)
     end
 
     # Write text on screen at the coordinates
@@ -114,7 +115,7 @@ module ButlerMainframe
     #     :sensible_data              => nil,
     #     :clean_chars_before_writing => nil, # clean x chars before writing a value, it switch off erase_before_writing
     #     :erase_before_writing       => nil  # execute an erase until end of field before write a text
-    def write text, options={}
+    def write(text, options={})
       options = show_deprecated_param(:erase_field_first, :erase_before_writing, options)       if options[:erase_field_first]
       options = show_deprecated_param(:clean_first_chars, :clean_chars_before_writing, options) if options[:clean_first_chars]
       options = {
@@ -129,10 +130,8 @@ module ButlerMainframe
       }.merge(options)
       options[:erase_before_writing] = false if options[:clean_chars_before_writing]
 
-      y           = options[:y]
-      x           = options[:x]
-      y         ||= get_cursor_axes[0]
-      x         ||= get_cursor_axes[1]
+      y   = options[:y] || get_cursor_axes[0]
+      x   = options[:x] || get_cursor_axes[1]
 
       hooked_rows = 2
       raise "Missing coordinates! y(row)=#{y} x(column)=#{x} "  unless x && y
@@ -143,7 +142,7 @@ module ButlerMainframe
         (y-hooked_rows..y+hooked_rows).each do |row_number|
           if /#{options[:hook]}/ === scan_row(row_number, 1, MAX_TERMINAL_COLUMNS)
             puts "Change y from #{y} to #{row_number} cause hook to:#{options[:hook]}" if row_number != y && @debug
-            bol_written = write_text_on_map text, row_number, x, options
+            bol_written = write_text_on_map(text, row_number, x, options)
             break
           end
         end
@@ -160,8 +159,8 @@ module ButlerMainframe
     end
 
     # Move the cursor at given coordinates
-    def set_cursor_axes y, x, options={}
-      sub_set_cursor_axes y, x, options
+    def set_cursor_axes(y, x, options={})
+      sub_set_cursor_axes(y, x, options)
     end
 
     private
@@ -171,7 +170,7 @@ module ButlerMainframe
     # These are the options with default values:
     #     :session_tag      => Fixnum, String or null depending on emulator
     #     :debug            => boolean
-    def create_object options={}
+    def create_object(options={})
       connection_attempts       = 10
       seconds_between_attempts  = 1
 
@@ -224,7 +223,7 @@ module ButlerMainframe
     #     :browser_path     => browser executable path, default value ButlerMainframe::Settings.browser_path (used by web emulator)
     #     :session_url      => the session url used by browser
     #     :session_path     => terminal session executable path, default value ButlerMainframe::Settings.session_path
-    def start_terminal_session options
+    def start_terminal_session(options)
       # Check configuration to know emulator starting type
       executable, args =  if options[:browser_path] && !options[:browser_path].empty?
                             [options[:browser_path], options[:session_url]]
@@ -248,22 +247,22 @@ module ButlerMainframe
     end
 
     #It reads one line on the screen
-    def scan_row y, x, len
-      str = sub_scan_row y, x, len
+    def scan_row(y, x, len)
+      str = sub_scan_row(y, x, len)
       puts "Scan row y:#{y} x:#{x} lungo:#{len} = #{str}" if @debug
       str
     end
 
     #It reads a rectangle on the screen
-    def scan_area y1, x1, y2, x2
-      str = sub_scan_area y1, x1, y2, x2
+    def scan_area(y1, x1, y2, x2)
+      str = sub_scan_area(y1, x1, y2, x2)
       puts "Scan area y1:#{y1} x1:#{x1} y2:#{y2} x2:#{x2} = #{str}" if @debug
       str
     end
 
     # Write a text on the screen
     # It also contains the logic to control the successful writing
-    def write_text_on_map text, y, x, options={}
+    def write_text_on_map(text, y, x, options={})
       options = {
           :check                      => true,
           :raise_error_on_check       => true,
@@ -281,17 +280,17 @@ module ButlerMainframe
       end
 
       if options[:erase_before_writing]
-        set_cursor_axes y, x
+        set_cursor_axes(y, x)
         do_erase
       end
 
-      sub_write_text text, y, x, :check_protect => options[:check]
+      sub_write_text(text, y, x, :check_protect => options[:check])
       res = true
       # If check is required it verify text is on the screen at given coordinates
       # Sensible data option disable the check because it could be on hidden fields
       if options[:check] && !options[:sensible_data]
         # It expects the string is present on the session at the specified coordinates
-        unless sub_wait_for_string text, y, x
+        unless sub_wait_for_string(text, y, x)
           if options[:raise_error_on_check]
             raise "write_text_on_map: Impossible to write #{options[:sensible_data] ? ('*' * text.size) : text} at row #{y} column #{x}"
           else
@@ -302,18 +301,18 @@ module ButlerMainframe
       res
     end
 
-    def show_deprecated_param old, new, params={}
+    def show_deprecated_param(old, new, params={})
       #Ruby 2+ caller_locations(1,1)[0].label
       puts "[DEPRECATION] please use param :#{new} instead of :#{old} for method #{caller[0][/`([^']*)'/, 1]}"
       # Creating new param with the value of the old param
       {new => params[old]}.merge(params)
     end
-    def show_deprecated_method new
+    def show_deprecated_method(new)
       puts "[DEPRECATION] please use #{new} method instead of #{caller[0][/`([^']*)'/, 1]}"
     end
 
     # If is called a not existing method there is the chance that an optional module may not have been added
-    def method_missing method_name, *args
+    def method_missing(method_name, *args)
       raise NoMethodError, "Method #{method_name} not found! Please check you have included any optional modules"
     end
 

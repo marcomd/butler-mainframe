@@ -8,14 +8,14 @@ module ButlerMainframe
 
     private
 
-    def sub_create_object options={}
+    def sub_create_object(options={})
       str_obj = "#{options[:session_path]}"
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
       @action = {}
       @action[:in], @action[:out], @action[:thr] = Open3.popen2e(str_obj)
       @action[:object] = true
       sleep WAIT_AFTER_START_SESSION
-      @pid    = @action[:thr].pid
+      @pid = @action[:thr].pid
     end
 
     # Check is session is started
@@ -56,7 +56,7 @@ module ButlerMainframe
       x_cmd cmd
 
       command_skip_wait = %w(^erase ^delete)
-      x_cmd "Wait(#{@timeout}, Output)" unless /(#{command_skip_wait.join('|')})/i === cmd
+      x_cmd("Wait(#{@timeout}, Output)") unless /(#{command_skip_wait.join('|')})/i === cmd
     end
 
     #It reads one line part of the screen
@@ -71,29 +71,29 @@ module ButlerMainframe
 
     # Get cursor coordinates
     def sub_get_cursor_axes
-      res = x_cmd "Query(Cursor)"
-      res.split.map{|c| c.to_i + 1}
+      res = x_cmd("Query(Cursor)")
+      res.split.map { |c| c.to_i + 1 }
     end
 
     # Move cursor to given coordinates
-    def sub_set_cursor_axes y, x, options={}
+    def sub_set_cursor_axes(y, x, options={})
       options = {
           :wait                     => true
       }.merge(options)
-      x_cmd "MoveCursor(#{y-1},#{x-1})"
+      x_cmd("MoveCursor(#{y-1},#{x-1})")
       if options[:wait]
-        x_cmd "Wait(#{@timeout},InputField)"
+        x_cmd("Wait(#{@timeout},InputField)")
         raise "Positioning the cursor at the coordinates (#{y}, #{x}) failed!" unless sub_get_cursor_axes == [y, x]
       end
     end
 
     # Write text on the screen at given coordinates
     # :check_protect => true add sensitivity to protected areas
-    def sub_write_text text, y, x, options={}
+    def sub_write_text(text, y, x, options={})
       options = {
           :check_protect              => true
       }.merge(options)
-      sub_set_cursor_axes y, x
+      sub_set_cursor_axes(y, x)
       x_cmd "String(\"#{text}\")", options
       # TODO
       # if options[:check_protect]
@@ -101,7 +101,7 @@ module ButlerMainframe
     end
 
     # Wait text at given coordinates
-    def sub_wait_for_string text, y, x
+    def sub_wait_for_string(text, y, x)
       x_cmd "Wait(#{@timeout},InputField)"
       total_time = 0.0
       sleep_time = 0.5
@@ -115,7 +115,7 @@ module ButlerMainframe
     end
 
     # To communicate with executable
-    def x_cmd cmd, options={}
+    def x_cmd(cmd, options={})
       puts "x_cmd in: #{options[:sensible_data] ? ('*' * cmd.size) : cmd}" if @debug == :full
       @action[:in].print "#{cmd}\n"
       @action[:in].flush

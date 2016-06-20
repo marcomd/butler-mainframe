@@ -17,7 +17,7 @@ module ButlerMainframe
     # :user             => ButlerMainframe::Settings.user,
     # :password         => ButlerMainframe::Settings.password,
     # :raise_on_abend   => false raise an exception if an abend is occured
-    def navigate destination, options={}
+    def navigate(destination, options={})
       options = {
           :session_user     => ButlerMainframe::Settings.session_user,
           :session_password => ButlerMainframe::Settings.session_password,
@@ -138,7 +138,7 @@ module ButlerMainframe
     # Login to mainframe
     # param1 user(array)        [text, y, x]
     # param2 password(array)    [text, y, x]
-    def session_login ar_user, ar_password
+    def session_login(ar_user, ar_password)
       puts "Starting session login..." if @debug
       user,     y_user,     x_user      = ar_user
       raise "Check session user configuration! #{user} #{y_user} #{x_user}" unless user && y_user && x_user
@@ -148,8 +148,8 @@ module ButlerMainframe
       wait_session
       #inizializza_sessione
       raise "It was waiting session login map instead of: #{catch_title}" unless session_login?
-      write user,      :y => y_user,      :x => x_user
-      write password,  :y => y_password,  :x => x_password, :sensible_data => true
+      write(user,      :y => y_user,      :x => x_user)
+      write(password,  :y => y_password,  :x => x_password, :sensible_data => true)
       do_enter
     end
 
@@ -167,7 +167,7 @@ module ButlerMainframe
 
       wait_session
       raise "It was waiting cics selezion map instead of: #{catch_title}, message: #{catch_message}" unless cics_selection?
-      write cics, :y => y_cics,   :x => x_cics
+      write(cics, :y => y_cics,   :x => x_cics)
       do_enter
       wait_session 1
     end
@@ -186,7 +186,7 @@ module ButlerMainframe
 
       wait_session
       raise "It was waiting company menu map instead of: #{catch_title}, message: #{catch_message}" unless company_menu?
-      write menu, :y => y_menu, :x => x_menu
+      write(menu, :y => y_menu, :x => x_menu)
       do_enter
     end
 
@@ -214,31 +214,27 @@ module ButlerMainframe
 
     # Get the title usually the first row
     # You can change default option :rows to get more lines starting from the first
-    def catch_title options={}
+    def catch_title(options={})
       options = {
           :rows                      => 1
       }.merge(options)
       scan(:y1 => 1, :x1 => 1, :y2 => options[:rows], :x2 => 80)
     end
-    def screen_title options={}
+    def screen_title(options={})
       show_deprecated_method 'catch_title'
-      catch_title options
+      catch_title(options)
     end
 
-    def execute_cics name
-      write name, :y => 1, :x => 2
+    def execute_cics(name)
+      write(name, :y => 1, :x => 2)
       do_enter
     end
 
-    def do_enter;   exec_command "ENTER"      end
-
-    def go_back;    exec_command "PA2"        end
-
-    def do_confirm; exec_command "PF3"        end
-
-    def do_quit;    exec_command "CLEAR"      end
-
-    def do_erase;   exec_command "ERASE EOF"  end
+    def do_enter;   exec_command("ENTER")     end
+    def go_back;    exec_command("PA2")       end
+    def do_confirm; exec_command("PF3")       end
+    def do_quit;    exec_command("CLEAR")     end
+    def do_erase;   exec_command("ERASE EOF") end
 
   end
 

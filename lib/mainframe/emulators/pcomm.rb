@@ -10,13 +10,17 @@ module ButlerMainframe
     private
 
     # Create objects from emulator library
-    def sub_create_object options={}
+    def sub_create_object(options={})
       str_obj = 'PComm.autECLSession'
       puts "#{Time.now.strftime "%H:%M:%S"} Creating object #{str_obj}..." if @debug == :full
       @action[:object] = WIN32OLE.new(str_obj)
       @action[:object].SetConnectionByName @session_tag
       @space  = @action[:object].autECLPS
       @screen = @action[:object].autECLOIA
+      if @action[:object] && @action[:object].Started && !@action[:object].CommStarted
+        @action[:object].StartCommunication
+        wait_session(WAIT_AFTER_START_CONNECTION)
+      end
     end
 
     # Check is session is started
@@ -49,29 +53,29 @@ module ButlerMainframe
         # See http://www-01.ibm.com/support/knowledgecenter/SSEQ5Y_6.0.0/com.ibm.pcomm.doc/books/html/admin_guide10.htm?lang=en
         cmd_stop = "PCOMSTOP /S=#{@session_tag} /q"
         if /^1.8/ === RUBY_VERSION
-          Thread.new {system cmd_stop}
+          Thread.new { system cmd_stop }
         else
-          Process.spawn cmd_stop
+          Process.spawn(cmd_stop)
         end
         # Process.kill 9, @pid #Another way is to kill the process but the session start 2nd process pcscm.exe
       end
     end
 
     #Execute keyboard command like PF1 or PA2 or ENTER ...
-    def sub_exec_command cmd, options={}
+    def sub_exec_command(cmd, options={})
       # Cast cmd to_s cause it could be passed as label
-      @space.SendKeys "[#{cmd}]"
-      @screen.WaitForAppAvailable @timeout
-      @screen.WaitForInputReady @timeout
+      @space.SendKeys("[#{cmd}]")
+      @screen.WaitForAppAvailable(@timeout)
+      @screen.WaitForInputReady(@timeout)
     end
 
     #It reads one line part of the screen
-    def sub_scan_row y, x, len
+    def sub_scan_row(y, x, len)
       @space.GetText(y, x, len)
     end
 
     #It reads a rectangle on the screen
-    def sub_scan_area y1, x1, y2, x2
+    def sub_scan_area(y1, x1, y2, x2)
       @space.GetTextRect(y1, x1, y2, x2)
     end
 
@@ -81,17 +85,17 @@ module ButlerMainframe
     end
 
     # Move cursor to given coordinates
-    def sub_set_cursor_axes y, x, options={}
+    def sub_set_cursor_axes(y, x, options={})
       options = {
           :wait                     => true
       }.merge(options)
-      @space.SetCursorPos y, x
+      @space.SetCursorPos(y, x)
       @space.WaitForCursor(y, x, @timeout) if options[:wait]
     end
 
     # Write text on the screen at given coordinates
     # :check_protect => true add sensitivity to protected areas
-    def sub_write_text text, y, x, options={}
+    def sub_write_text(text, y, x, options={})
       options = {
           :check_protect              => true
       }.merge(options)
@@ -105,9 +109,9 @@ module ButlerMainframe
     end
 
     # Wait text at given coordinates and wait the session is available again
-    def sub_wait_for_string text, y, x
-      @space.WaitForString text, y, x, @timeout
-      @screen.WaitForInputReady @timeout
+    def sub_wait_for_string(text, y, x)
+      @space.WaitForString(text, y, x, @timeout)
+      @screen.WaitForInputReady(@timeout)
     end
 
   end

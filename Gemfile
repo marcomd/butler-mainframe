@@ -1,3 +1,4 @@
 source 'https://rubygems.org'
 
-gem "butler-mainframe", path: "."
+gem 'rake'
+gem 'butler-mainframe', path: '.'

@@ -1,3 +1,7 @@
+0.9.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.8.0...v0.9.0) June 20th, 2016
+------------------------------
+* PComm emulator: it attempts to start the connection if the terminal is present
+
 0.8.0 [☰](https://github.com/marcomd/butler-mainframe/compare/v0.7.5...v0.8.0) May 3th, 2016
 ------------------------------
 * PComm emulator: the write param 'clean_chars_before_writing' didn't work
